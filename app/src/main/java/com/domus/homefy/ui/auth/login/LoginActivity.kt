@@ -1,10 +1,13 @@
 package com.domus.homefy.ui.auth.login
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
@@ -21,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
@@ -109,7 +113,17 @@ fun LoginScreen(authViewModel: AuthViewModel = koinViewModel()) {
         Spacer(modifier = Modifier.padding(20.dp))
 
         if (authViewModel.uiState is UiState.Error) {
-            Text((authViewModel.uiState as UiState.Error).message)
+            Box(
+                modifier = Modifier
+                    .border(
+                        width = 1.dp,
+                        color = Color.Red,
+                        shape = RoundedCornerShape(3.dp)
+                    )
+                    .padding(4.dp)
+            ) {
+                Text(color = Color.Red, text = (authViewModel.uiState as UiState.Error).message)
+            }
         }
     }
 }
