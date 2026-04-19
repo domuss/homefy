@@ -1,7 +1,6 @@
-package com.domus.homefy.ui.login
+package com.domus.homefy.ui.auth.login
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,7 +28,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.domus.homefy.ui.home.LoginViewModel
+import com.domus.homefy.ui.auth.AuthViewModel
+import com.domus.homefy.ui.auth.UiState
+import org.koin.androidx.compose.koinViewModel
 
 //class LoginActivity : ComponentActivity() {
 //    override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,7 +47,7 @@ import com.domus.homefy.ui.home.LoginViewModel
 //}
 
 @Composable
-fun LoginScreen(viewModel: LoginViewModel) {
+fun LoginScreen(authViewModel: AuthViewModel = koinViewModel()) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var visible by remember { mutableStateOf(false) }
@@ -56,7 +57,11 @@ fun LoginScreen(viewModel: LoginViewModel) {
         verticalArrangement = Arrangement.Center,
         modifier = Modifier.fillMaxSize()
     ) {
-        Text(text = "Homefy", fontSize = 40.sp, color = Color.hsl(hue = 271F, saturation = 0.98F, lightness = 0.38F))
+        Text(
+            text = "Homefy",
+            fontSize = 40.sp,
+            color = Color.hsl(hue = 271F, saturation = 0.98F, lightness = 0.38F)
+        )
 
         Spacer(modifier = Modifier.padding(8.dp))
 
@@ -96,9 +101,15 @@ fun LoginScreen(viewModel: LoginViewModel) {
         Spacer(modifier = Modifier.padding(4.dp))
 
         Button(onClick = {
-            viewModel.login()
+            authViewModel.login(username, password)
         }) {
             Text("Entrar")
+        }
+
+        Spacer(modifier = Modifier.padding(20.dp))
+
+        if (authViewModel.uiState is UiState.Error) {
+            Text((authViewModel.uiState as UiState.Error).message)
         }
     }
 }
