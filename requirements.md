@@ -16,4 +16,7 @@
   - Senha
   - Nome
   - Nome de usuário
+- [**RF04**]: Como usuário quero alterar meus dados cadastrais.
+- [**RF05**]: Como usuário quero deletar minha conta do sistema.
+
 
