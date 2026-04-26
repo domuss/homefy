@@ -17,6 +17,8 @@ import com.domus.homefy.data.AuthState
 import com.domus.homefy.ui.home.HomeScreen
 import com.domus.homefy.ui.auth.AuthViewModel
 import com.domus.homefy.ui.auth.login.LoginScreen
+import com.domus.homefy.ui.auth.signup.SignUpScreen
+import com.domus.homefy.ui.profile.EditProfileScreen
 import org.koin.androidx.compose.koinViewModel
 
 class MainActivity : ComponentActivity() {
@@ -51,7 +53,10 @@ fun AuthNavGraph() {
 
     NavHost(navController = navController, startDestination = "login") {
         composable("login") {
-            LoginScreen()
+            LoginScreen(navController)
+        }
+        composable("signup") {
+            SignUpScreen(navController)
         }
     }
 }
@@ -62,8 +67,10 @@ fun MainNavGraph() {
 
     NavHost(navController = navController, startDestination = "home") {
         composable("home") {
-            HomeScreen()
+            HomeScreen(navController)
+        }
+        composable("edit-profile") {
+            EditProfileScreen(navController)
         }
     }
-
 }

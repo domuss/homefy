@@ -7,6 +7,8 @@ import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import org.koin.dsl.module
 import org.koin.core.module.dsl.viewModel
+import com.domus.homefy.ui.auth.signup.SignUpViewModel
+import com.domus.homefy.ui.profile.EditProfileViewModel
 
 val appModule = module {
     single {
@@ -23,5 +25,7 @@ val appModule = module {
         AuthRepository(get())
     }
 
-    viewModel { AuthViewModel(get(), get()) }
+    viewModel { AuthViewModel(get(), get())}
+    viewModel { SignUpViewModel(get()) }
+    viewModel { EditProfileViewModel(get()) }
 }

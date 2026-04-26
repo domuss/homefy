@@ -68,4 +68,27 @@ class AuthRepository(
     fun getCurrentUser(): UserInfo? {
         return supabase.auth.currentUserOrNull()
     }
+
+    suspend fun updateUser(name: String?, username: String?): Result<Unit> {
+        return try {
+            supabase.auth.updateUser {
+                data = buildJsonObject {
+                    name?.let { put("name", it) }
+                    username?.let { put("username", it) }
+                }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateEmail(newEmail: String): Result<Unit> {
+        return try {
+            supabase.auth.updateUser { email = newEmail }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
