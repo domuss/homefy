@@ -23,6 +23,30 @@ class HouseViewModel(private  val houseRepository: HouseRepository,
 
     var uiStatus by mutableStateOf<HouseUIStatus>(HouseUIStatus.Esperando)
     private set
+    var housesList by mutableStateOf<List<House>>(emptyList())
+        private set
+
+    fun loadHouses() {
+        viewModelScope.launch {
+            uiStatus = HouseUIStatus.Loading
+            val user = authRepository.getCurrentUser()
+
+            if (user == null) {
+                uiStatus = HouseUIStatus.Error("Usuário não está logado")
+                return@launch
+            }
+
+            val result = houseRepository.getHousesByUser(user.id)
+
+            if (result.isSuccess) {
+
+                housesList = result.getOrNull() ?: emptyList()
+                uiStatus = HouseUIStatus.Sucesso
+            } else {
+                uiStatus = HouseUIStatus.Error("Erro ao buscar as casas.")
+            }
+        }
+    }
 
     fun createHouse(nome: String) {
         if (nome.isBlank()) {
@@ -38,16 +62,50 @@ class HouseViewModel(private  val houseRepository: HouseRepository,
                 return@launch
             }
 
-            val newHouse = House(nome = nome, creator_id = user.id)
+            val newHouse = House(name = nome, creator_id = user.id)
             val result = houseRepository.CriarCasa(newHouse)
 
 
             if (result.isSuccess) {
                 uiStatus = HouseUIStatus.Sucesso
             } else {
-                uiStatus = HouseUIStatus.Error("Erro ao salvar no banco.")
+                val erroReal = result.exceptionOrNull()?.message ?: "Erro desconhecido"
+                uiStatus = HouseUIStatus.Error("Erro do Banco: $erroReal")
             }
         }
     }
+
+
+    fun updateHouse(houseId: Long, newName: String) {
+        if (newName.isBlank()) {
+            uiStatus = HouseUIStatus.Error("Nome não pode ser vazio")
+            return
+        }
+
+        viewModelScope.launch {
+            uiStatus = HouseUIStatus.Loading
+
+            val result = houseRepository.updateHouseName(houseId, newName)
+
+            if (result.isSuccess) {
+                uiStatus = HouseUIStatus.Sucesso
+            } else {
+                uiStatus = HouseUIStatus.Error("Erro ao atualizar casa")
+            }
+        }
+    }
+
+
+    fun deleteHouse(houseId: Long, onDeleted: () -> Unit) {
+        viewModelScope.launch {
+            val result = houseRepository.deleteHouse(houseId)
+            if (result.isSuccess) {
+                onDeleted() // Avisa a tela para voltar ou atualizar a lista
+            } else {
+                uiStatus = HouseUIStatus.Error("Erro ao deletar: ${result.exceptionOrNull()?.message}")
+            }
+        }
+    }
+
 
 }

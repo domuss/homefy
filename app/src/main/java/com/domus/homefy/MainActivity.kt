@@ -18,6 +18,8 @@ import com.domus.homefy.ui.home.HomeScreen
 import com.domus.homefy.ui.auth.AuthViewModel
 import com.domus.homefy.ui.auth.login.LoginScreen
 import com.domus.homefy.ui.auth.signup.SignUpScreen
+import com.domus.homefy.ui.house.EditHouseScreen
+import com.domus.homefy.ui.house.CreateHouseScreen
 import com.domus.homefy.ui.profile.EditProfileScreen
 import org.koin.androidx.compose.koinViewModel
 
@@ -42,7 +44,7 @@ fun AppNavigation() {
         AuthState.Authenticated -> MainNavGraph()
         AuthState.NotAuthenticated -> AuthNavGraph()
         else -> {}
-//        AuthState.NotAuthenticated -> LoginScreen()
+
     }
 
 }
@@ -69,8 +71,27 @@ fun MainNavGraph() {
         composable("home") {
             HomeScreen(navController)
         }
+
+        composable("create-house") {
+            CreateHouseScreen(
+                onHouseCreated = {
+
+                    navController.popBackStack()
+                }
+            )
+        }
         composable("edit-profile") {
             EditProfileScreen(navController)
+        }
+        composable("edit-house/{id}/{name}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id")?.toLong() ?: 0
+            val name = backStackEntry.arguments?.getString("name") ?: ""
+
+            EditHouseScreen(
+                navController = navController,
+                houseId = id,
+                currentName = name
+            )
         }
     }
 }
