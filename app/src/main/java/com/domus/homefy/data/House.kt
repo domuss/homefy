@@ -5,6 +5,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class House(
     val id: Long?=null,
-    val nome: String,
+    val name: String,
     val creator_id: String
 )
