@@ -39,7 +39,7 @@ class HouseViewModel(private  val houseRepository: HouseRepository,
             val result = houseRepository.getHousesByUser(user.id)
 
             if (result.isSuccess) {
-                // Se deu certo, preenchemos nossa variável com a lista!
+
                 housesList = result.getOrNull() ?: emptyList()
                 uiStatus = HouseUIStatus.Sucesso
             } else {
@@ -95,6 +95,17 @@ class HouseViewModel(private  val houseRepository: HouseRepository,
         }
     }
 
+
+    fun deleteHouse(houseId: Long, onDeleted: () -> Unit) {
+        viewModelScope.launch {
+            val result = houseRepository.deleteHouse(houseId)
+            if (result.isSuccess) {
+                onDeleted() // Avisa a tela para voltar ou atualizar a lista
+            } else {
+                uiStatus = HouseUIStatus.Error("Erro ao deletar: ${result.exceptionOrNull()?.message}")
+            }
+        }
+    }
 
 
 }
