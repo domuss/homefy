@@ -77,7 +77,7 @@ fun HomeScreen(
             }
 
             Button(onClick = { navController.navigate("edit-profile") }) {
-                Text("Perfil") // Encurtei o texto só pra caber melhor na tela
+                Text("Perfil")
             }
 
             Button(onClick = { authViewModel.logout() }) {

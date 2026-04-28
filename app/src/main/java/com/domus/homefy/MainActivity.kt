@@ -44,7 +44,7 @@ fun AppNavigation() {
         AuthState.Authenticated -> MainNavGraph()
         AuthState.NotAuthenticated -> AuthNavGraph()
         else -> {}
-//        AuthState.NotAuthenticated -> LoginScreen()
+
     }
 
 }
@@ -75,8 +75,7 @@ fun MainNavGraph() {
         composable("create-house") {
             CreateHouseScreen(
                 onHouseCreated = {
-                    // Quando a casa for criada, pedimos para o navController voltar
-                    // para a tela anterior (a HomeScreen)
+
                     navController.popBackStack()
                 }
             )

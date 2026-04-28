@@ -50,6 +50,22 @@ fun EditHouseScreen(
             Text("Salvar")
         }
 
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedButton(
+            onClick = {
+
+                houseViewModel.deleteHouse(houseId) {
+                    navController.popBackStack()
+                }
+            },
+            enabled = uiStatus != HouseUIStatus.Loading,
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Excluir Casa")
+        }
+
         when (uiStatus) {
             is HouseUIStatus.Sucesso -> {
                 LaunchedEffect(Unit) {
