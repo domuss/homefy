@@ -40,11 +40,26 @@ class HouseRepository(private val supabase: SupabaseClient) {
                 filter {
                     eq("creator_id", userId) // Traz só as casas desse usuário
                 }
-            }.decodeList<House>() // Converte o JSON do banco para a sua lista de objetos House
+            }.decodeList<House>()
 
             Result.success(houses)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
+
+    suspend fun deleteHouse(houseId: Long): Result<Unit> {
+        return try {
+            supabase.postgrest["home"]
+                .delete {
+                    filter {
+                        eq("id", houseId)
+                    }
+                }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 }
