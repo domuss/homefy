@@ -34,22 +34,35 @@ class HouseViewModel(private  val houseRepository: HouseRepository,
         return (1..6).map { chars.random() }.joinToString("")
     }
 
-    fun loadHouses() {
+    fun loadHouses(updateUiStatus: Boolean = true) {
         viewModelScope.launch {
-            uiStatus = HouseUIStatus.Loading
+            if (updateUiStatus) {
+                uiStatus = HouseUIStatus.Loading
+            }
             val supaId = authRepository.getCurrentUser()?.id
 
             if (supaId == null) {
-                uiStatus = HouseUIStatus.Error("Usuário não está logado")
+                if (updateUiStatus) {
+                    uiStatus = HouseUIStatus.Error("Usuário não está logado")
+                }
                 return@launch
             }
 
 
             val userResult = userRepository.getUserBySupaId(supaId)
-            val publicUserId = userResult.getOrNull()?.id?.toInt()
+            if (userResult.isFailure) {
+                val message = userResult.exceptionOrNull()?.message ?: "Erro desconhecido"
+                if (updateUiStatus) {
+                    uiStatus = HouseUIStatus.Error("Erro ao buscar usuário público: $message")
+                }
+                return@launch
+            }
 
+            val publicUserId = userResult.getOrNull()?.id?.toInt()
             if (publicUserId == null) {
-                uiStatus = HouseUIStatus.Error("Usuário não encontrado na base de dados pública")
+                if (updateUiStatus) {
+                    uiStatus = HouseUIStatus.Error("Usuário público sem id (verifique a tabela 'users')")
+                }
                 return@launch
             }
 
@@ -58,9 +71,14 @@ class HouseViewModel(private  val houseRepository: HouseRepository,
 
             if (result.isSuccess) {
                 housesList = result.getOrNull() ?: emptyList()
-                uiStatus = HouseUIStatus.Sucesso
+                if (updateUiStatus) {
+                    uiStatus = HouseUIStatus.Sucesso
+                }
             } else {
-                uiStatus = HouseUIStatus.Error("Erro ao buscar as casas.")
+                val erroReal = result.exceptionOrNull()?.message ?: "Erro desconhecido"
+                if (updateUiStatus) {
+                    uiStatus = HouseUIStatus.Error("Erro ao buscar as casas: $erroReal")
+                }
             }
         }
     }
@@ -81,10 +99,15 @@ class HouseViewModel(private  val houseRepository: HouseRepository,
 
 
             val userResult = userRepository.getUserBySupaId(supaId)
-            val publicUserId = userResult.getOrNull()?.id?.toInt()
+            if (userResult.isFailure) {
+                val message = userResult.exceptionOrNull()?.message ?: "Erro desconhecido"
+                uiStatus = HouseUIStatus.Error("Erro ao buscar usuário público: $message")
+                return@launch
+            }
 
+            val publicUserId = userResult.getOrNull()?.id?.toInt()
             if (publicUserId == null) {
-                uiStatus = HouseUIStatus.Error("Usuário não encontrado na base de dados pública")
+                uiStatus = HouseUIStatus.Error("Usuário público sem id (verifique a tabela 'users')")
                 return@launch
             }
 
@@ -99,7 +122,7 @@ class HouseViewModel(private  val houseRepository: HouseRepository,
 
             if (result.isSuccess) {
                 uiStatus = HouseUIStatus.Sucesso
-                loadHouses()
+                loadHouses(updateUiStatus = false)
             } else {
                 val erroReal = result.exceptionOrNull()?.message ?: "Erro desconhecido"
                 uiStatus = HouseUIStatus.Error("Erro do Banco: $erroReal")

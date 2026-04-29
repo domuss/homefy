@@ -7,6 +7,6 @@ data class House(
     val id: Long?=null,
     val name: String,
     val creator_id: Int,
-    val access_code: String,
-    val is_code_active: Boolean = true
+    val access_code: String? = null,
+    val is_code_active: Boolean? = null
 )

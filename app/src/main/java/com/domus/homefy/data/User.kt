@@ -6,6 +6,6 @@ import kotlinx.serialization.Serializable
 data class User(
     val id: Long? = null,
     val supa_id: String,
-    val name: String,
-    val username: String
+    val name: String? = null,
+    val username: String? = null
 )
