@@ -79,4 +79,61 @@ class HouseRepository(private val supabase: SupabaseClient) {
         }
     }
 
+
+
+    suspend fun getHouseByAccessCode(code: String): Result<House?> {
+        return try {
+            val house = supabase.postgrest["home"].select {
+                filter {
+                    eq("access_code", code)
+                }
+            }.decodeSingleOrNull<House>()
+            Result.success(house)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+
+    suspend fun insertMember(houseId: Long, userId: Int): Result<Unit> {
+        return try {
+            val member = HouseMember(house_id = houseId, user_id = userId)
+            supabase.postgrest["house_members"].insert(member)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+
+    suspend fun getJoinedHouses(userId: Int): Result<List<House>> {
+        return try {
+            val members = supabase.postgrest["house_members"]
+                .select {
+                    filter {
+                        eq("user_id", userId)
+                    }
+                }.decodeList<HouseMember>()
+
+            val houseIds = members.map { it.house_id }
+
+
+            if (houseIds.isEmpty()) {
+                return Result.success(emptyList())
+            }
+
+
+            val houses = supabase.postgrest["home"]
+                .select {
+                    filter {
+                        isIn("id", houseIds)
+                    }
+                }.decodeList<House>()
+
+            Result.success(houses)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 }
