@@ -16,15 +16,19 @@ fun EditHouseScreen(
     navController: NavController,
     houseId: Long,
     currentName: String,
+    initialAccessCode: String,
+    initialIsCodeActive: Boolean,
     houseViewModel: HouseViewModel = koinViewModel()
 ) {
     var houseName by remember { mutableStateOf(currentName) }
+    var isCodeActive by remember { mutableStateOf(initialIsCodeActive) }
+
     val uiStatus = houseViewModel.uiStatus
 
 
-    val currentHouse = houseViewModel.housesList.find { it.id == houseId }
-    val accessCode = currentHouse?.access_code ?: "..."
-    val isCodeActive = currentHouse?.is_code_active ?: false
+    //val currentHouse = houseViewModel.housesList.find { it.id == houseId }
+    //val accessCode = currentHouse?.access_code ?: "..."
+    //val isCodeActive = currentHouse?.is_code_active ?: false
 
 
     Column(
@@ -57,7 +61,9 @@ fun EditHouseScreen(
                     .padding(16.dp)
             ) {
                 Text("Código de Convite", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(accessCode, fontSize = 24.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+
+                //daqui
+                Text(initialAccessCode, fontSize = 24.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
 
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -70,7 +76,8 @@ fun EditHouseScreen(
                     Switch(
                         checked = isCodeActive,
                         onCheckedChange = { novoStatus ->
-                            houseViewModel.toggleCodeStatus(houseId, novoStatus)
+                            isCodeActive = novoStatus // Atualiza a tela instantaneamente
+                            houseViewModel.toggleCodeStatus(houseId, novoStatus) // Salva no banco
                         }
                     )
                 }
