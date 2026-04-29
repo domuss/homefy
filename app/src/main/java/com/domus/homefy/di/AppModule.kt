@@ -26,11 +26,11 @@ val appModule = module {
     }
 
     single { UserRepository(get()) }
-    single { AuthRepository(get(), get()) }  // SupabaseClient + UserRepository
+    single { AuthRepository(get(), get()) }
     single { HouseRepository(get()) }
 
     viewModel { AuthViewModel(get()) }
     viewModel { SignUpViewModel(get()) }
-    viewModel { EditProfileViewModel(get(), get()) }  // AuthRepository + UserRepository
-    viewModel { HouseViewModel(get(), get()) }        // sem mudança
+    viewModel { EditProfileViewModel(get(), get()) }
+    viewModel { HouseViewModel(get(), get(), get()) }
 }
