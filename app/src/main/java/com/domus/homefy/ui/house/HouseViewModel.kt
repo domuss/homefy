@@ -48,7 +48,6 @@ class HouseViewModel(private  val houseRepository: HouseRepository,
                 return@launch
             }
 
-
             val userResult = userRepository.getUserBySupaId(supaId)
             if (userResult.isFailure) {
                 val message = userResult.exceptionOrNull()?.message ?: "Erro desconhecido"
@@ -66,18 +65,29 @@ class HouseViewModel(private  val houseRepository: HouseRepository,
                 return@launch
             }
 
-            // Agora sim, passa o publicUserId (Int) certinho!
-            val result = houseRepository.getHousesByUser(publicUserId)
 
-            if (result.isSuccess) {
-                housesList = result.getOrNull() ?: emptyList()
-                if (updateUiStatus) {
-                    uiStatus = HouseUIStatus.Sucesso
-                }
-            } else {
-                val erroReal = result.exceptionOrNull()?.message ?: "Erro desconhecido"
+            val createdResult = houseRepository.getHousesByUser(publicUserId)
+            val createdHouses = createdResult.getOrNull() ?: emptyList()
+
+
+            val joinedResult = houseRepository.getJoinedHouses(publicUserId)
+            val joinedHouses = joinedResult.getOrNull() ?: emptyList()
+
+
+            if (createdResult.isFailure && joinedResult.isFailure) {
+                val erroReal = createdResult.exceptionOrNull()?.message
+                    ?: joinedResult.exceptionOrNull()?.message
+                    ?: "Erro desconhecido"
+
                 if (updateUiStatus) {
                     uiStatus = HouseUIStatus.Error("Erro ao buscar as casas: $erroReal")
+                }
+            } else {
+
+                housesList = (createdHouses + joinedHouses).distinctBy { it.id }
+
+                if (updateUiStatus) {
+                    uiStatus = HouseUIStatus.Sucesso
                 }
             }
         }
@@ -178,5 +188,53 @@ class HouseViewModel(private  val houseRepository: HouseRepository,
         }
     }
 
+
+
+    fun joinHouse(code: String) {
+        viewModelScope.launch {
+            uiStatus = HouseUIStatus.Loading
+
+
+            val supaId = authRepository.getCurrentUser()?.id
+            if (supaId == null) {
+                uiStatus = HouseUIStatus.Error("Usuário não autenticado.")
+                return@launch
+            }
+
+
+            val userResult = userRepository.getUserBySupaId(supaId)
+            val publicUserId = userResult.getOrNull()?.id?.toInt()
+
+            if (publicUserId == null) {
+                uiStatus = HouseUIStatus.Error("Perfil do usuário não encontrado no banco.")
+                return@launch
+            }
+
+
+            val houseResult = houseRepository.getHouseByAccessCode(code)
+            val house = houseResult.getOrNull()
+
+            if (house == null) {
+                uiStatus = HouseUIStatus.Error("Código inválido ou casa não encontrada.")
+                return@launch
+            }
+
+
+            if (house.is_code_active != true) {
+                uiStatus = HouseUIStatus.Error("Esta casa não está aceitando novos membros no momento.")
+                return@launch
+            }
+
+
+            val joinResult = houseRepository.insertMember(house.id!!, publicUserId)
+
+            if (joinResult.isSuccess) {
+                uiStatus = HouseUIStatus.Sucesso
+                loadHouses()
+            } else {
+                uiStatus = HouseUIStatus.Error("Erro ao entrar na casa: ${joinResult.exceptionOrNull()?.message}")
+            }
+        }
+    }
 
 }
