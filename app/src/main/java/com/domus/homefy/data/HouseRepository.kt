@@ -34,11 +34,28 @@ class HouseRepository(private val supabase: SupabaseClient) {
         }
     }
 
-    suspend fun getHousesByUser(userId: String): Result<List<House>> {
+    suspend fun updateCodeStatus(houseId: Long, isActive: Boolean): Result<Unit> {
+        return try {
+            supabase.postgrest["home"].update(
+                {
+                    set("is_code_active", isActive)
+                }
+            ) {
+                filter {
+                    eq("id", houseId)
+                }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getHousesByUser(userId: Int): Result<List<House>> {
         return try {
             val houses = supabase.postgrest["home"].select {
                 filter {
-                    eq("creator_id", userId) // Traz só as casas desse usuário
+                    eq("creator_id", userId)
                 }
             }.decodeList<House>()
 
