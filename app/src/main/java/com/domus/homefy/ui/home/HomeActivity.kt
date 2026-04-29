@@ -47,7 +47,9 @@ fun HomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            navController.navigate("edit-house/${house.id}/${house.name}")
+                            val codigo = house.access_code ?: "VAZIO"
+                            val status = house.is_code_active ?: false
+                            navController.navigate("edit-house/${house.id}/${house.name}/$codigo/$status")
                         }
                 ) {
                     Text(

@@ -26,9 +26,7 @@ fun EditHouseScreen(
     val uiStatus = houseViewModel.uiStatus
 
 
-    //val currentHouse = houseViewModel.housesList.find { it.id == houseId }
-    //val accessCode = currentHouse?.access_code ?: "..."
-    //val isCodeActive = currentHouse?.is_code_active ?: false
+
 
 
     Column(
@@ -62,7 +60,7 @@ fun EditHouseScreen(
             ) {
                 Text("Código de Convite", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
-                //daqui
+
                 Text(initialAccessCode, fontSize = 24.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -76,8 +74,8 @@ fun EditHouseScreen(
                     Switch(
                         checked = isCodeActive,
                         onCheckedChange = { novoStatus ->
-                            isCodeActive = novoStatus // Atualiza a tela instantaneamente
-                            houseViewModel.toggleCodeStatus(houseId, novoStatus) // Salva no banco
+                            isCodeActive = novoStatus
+                            houseViewModel.toggleCodeStatus(houseId, novoStatus)
                         }
                     )
                 }
