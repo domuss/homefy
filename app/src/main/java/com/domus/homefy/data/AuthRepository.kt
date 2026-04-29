@@ -1,6 +1,5 @@
 package com.domus.homefy.data
 
-import android.util.Log
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
@@ -8,8 +7,6 @@ import io.github.jan.supabase.auth.status.SessionStatus
 import io.github.jan.supabase.auth.user.UserInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 
 sealed interface AuthState {
     object Loading : AuthState
@@ -18,7 +15,8 @@ sealed interface AuthState {
 }
 
 class AuthRepository(
-    private val supabase: SupabaseClient
+    private val supabase: SupabaseClient,
+    private val userRepository: UserRepository
 ) {
     val sessionFlow: Flow<AuthState> = supabase.auth.sessionStatus.map { status ->
         when (status) {
@@ -47,14 +45,21 @@ class AuthRepository(
         newUsername: String
     ): Result<Unit> {
         return try {
-            supabase.auth.signUpWith(Email) {
+            // signUpWith já retorna o UserInfo, funciona mesmo com confirmação de email ativa
+            val userInfo = supabase.auth.signUpWith(Email) {
                 email = newEmail
                 password = newPassword
-                data = buildJsonObject {
-                    put("name", newName)
-                    put("username", newUsername)
-                }
             }
+
+            val supaId = userInfo?.id
+                ?: return Result.failure(Exception("Erro ao obter usuário após cadastro"))
+
+            userRepository.createUser(
+                supaId = supaId.toString(),
+                name = newName,
+                username = newUsername
+            )
+
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -67,20 +72,6 @@ class AuthRepository(
 
     fun getCurrentUser(): UserInfo? {
         return supabase.auth.currentUserOrNull()
-    }
-
-    suspend fun updateUser(name: String?, username: String?): Result<Unit> {
-        return try {
-            supabase.auth.updateUser {
-                data = buildJsonObject {
-                    name?.let { put("name", it) }
-                    username?.let { put("username", it) }
-                }
-            }
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
     }
 
     suspend fun updateEmail(newEmail: String): Result<Unit> {
