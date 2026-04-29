@@ -54,11 +54,18 @@ class AuthRepository(
             val supaId = userInfo?.id
                 ?: return Result.failure(Exception("Erro ao obter usuário após cadastro"))
 
-            userRepository.createUser(
+            val publicUserResult = userRepository.createUser(
                 supaId = supaId.toString(),
                 name = newName,
                 username = newUsername
             )
+
+            if (publicUserResult.isFailure) {
+                return Result.failure(
+                    publicUserResult.exceptionOrNull()
+                        ?: Exception("Erro ao criar usuário na base de dados pública")
+                )
+            }
 
             Result.success(Unit)
         } catch (e: Exception) {

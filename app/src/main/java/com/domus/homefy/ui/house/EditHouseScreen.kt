@@ -5,6 +5,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -15,10 +16,18 @@ fun EditHouseScreen(
     navController: NavController,
     houseId: Long,
     currentName: String,
+    initialAccessCode: String,
+    initialIsCodeActive: Boolean,
     houseViewModel: HouseViewModel = koinViewModel()
 ) {
     var houseName by remember { mutableStateOf(currentName) }
+    var isCodeActive by remember { mutableStateOf(initialIsCodeActive) }
+
     val uiStatus = houseViewModel.uiStatus
+
+
+
+
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -39,6 +48,42 @@ fun EditHouseScreen(
         )
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text("Código de Convite", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+
+                Text(initialAccessCode, fontSize = 24.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(if (isCodeActive) "Convites Ativos" else "Convites Bloqueados", fontSize = 16.sp)
+                    Switch(
+                        checked = isCodeActive,
+                        onCheckedChange = { novoStatus ->
+                            isCodeActive = novoStatus
+                            houseViewModel.toggleCodeStatus(houseId, novoStatus)
+                        }
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
 
         Button(
             onClick = {

@@ -83,14 +83,18 @@ fun MainNavGraph() {
         composable("edit-profile") {
             EditProfileScreen(navController)
         }
-        composable("edit-house/{id}/{name}") { backStackEntry ->
+        composable("edit-house/{id}/{name}/{accessCode}/{isCodeActive}") { backStackEntry ->
             val id = backStackEntry.arguments?.getString("id")?.toLong() ?: 0
             val name = backStackEntry.arguments?.getString("name") ?: ""
+            val accessCode = backStackEntry.arguments?.getString("accessCode") ?: ""
+            val isCodeActive = backStackEntry.arguments?.getString("isCodeActive")?.toBoolean() ?: false
 
             EditHouseScreen(
                 navController = navController,
                 houseId = id,
-                currentName = name
+                currentName = name,
+                initialAccessCode = accessCode,
+                initialIsCodeActive = isCodeActive
             )
         }
     }

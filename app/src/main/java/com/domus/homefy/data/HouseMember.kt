@@ -3,9 +3,8 @@ package com.domus.homefy.data
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class User(
+data class HouseMember(
     val id: Long? = null,
-    val supa_id: String,
-    val name: String? = null,
-    val username: String? = null
+    val house_id: Long,
+    val user_id: Int
 )
