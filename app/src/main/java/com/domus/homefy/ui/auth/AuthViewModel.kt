@@ -15,6 +15,7 @@ sealed interface UiState {
     object Idle : UiState
     object Loading : UiState
     object Success : UiState
+    data class FormError(val message: String) : UiState
     data class Error(val message: String) : UiState
 }
 
@@ -31,12 +32,16 @@ class AuthViewModel(
         initialValue = AuthState.Loading
     )
 
+    fun clearUiState() {
+        uiState = UiState.Idle
+    }
+
     fun login(email: String, password: String) {
         viewModelScope.launch {
             uiState = UiState.Loading
 
             if (email.isEmpty() || password.isEmpty()) {
-                uiState = UiState.Error("E-mail e senha não podem estar vazios")
+                uiState = UiState.FormError("E-mail e senha não podem estar vazios")
                 return@launch
             }
 
