@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.domus.homefy.ui.auth.AuthViewModel
 import com.domus.homefy.ui.auth.UiState
+import com.domus.homefy.ui.shared.Layout
 import io.ktor.util.reflect.instanceOf
 import org.koin.androidx.compose.koinViewModel
 
@@ -68,7 +69,6 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
     var visible by remember { mutableStateOf(false) }
     val submitEnabled = authViewModel.uiState !is UiState.Loading && (email.isNotEmpty() && password.isNotEmpty())
 
-    val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
     val inputModifier = Modifier
@@ -85,7 +85,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
         }
     }
 
-    Scaffold(
+    Layout (
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         }) { contentPadding ->
