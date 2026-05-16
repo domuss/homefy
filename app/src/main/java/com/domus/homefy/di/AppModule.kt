@@ -6,7 +6,7 @@ import com.domus.homefy.data.UserRepository
 import com.domus.homefy.ui.auth.AuthViewModel
 import com.domus.homefy.ui.auth.signup.SignUpViewModel
 import com.domus.homefy.ui.house.HouseViewModel
-import com.domus.homefy.ui.profile.EditProfileViewModel
+import com.domus.homefy.ui.profile.ProfileViewModel
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
@@ -31,6 +31,6 @@ val appModule = module {
 
     viewModel { AuthViewModel(get()) }
     viewModel { SignUpViewModel(get()) }
-    viewModel { EditProfileViewModel(get(), get()) }
+    viewModel { ProfileViewModel(get(), get()) }
     viewModel { HouseViewModel(get(), get(), get()) }
 }
