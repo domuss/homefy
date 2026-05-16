@@ -20,10 +20,12 @@ import org.koin.androidx.compose.koinViewModel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.domus.homefy.ui.house.HouseUIStatus
+import kotlinx.datetime.format.Padding
 
 @Composable
 fun HomeScreen(
     navController: NavController,
+    padding: PaddingValues,
     authViewModel: AuthViewModel = koinViewModel(),
     houseViewModel: HouseViewModel = koinViewModel()
 ) {
@@ -40,6 +42,7 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(padding)
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
