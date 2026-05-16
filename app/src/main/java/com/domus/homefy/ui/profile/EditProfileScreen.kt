@@ -20,7 +20,8 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun EditProfileScreen(
     navController: NavController,
-    viewModel: EditProfileViewModel = koinViewModel()
+    contentPadding: PaddingValues,
+    viewModel: ProfileViewModel = koinViewModel()
 ) {
     val publicUser = viewModel.currentPublicUser
     val currentName = publicUser?.name ?: ""
@@ -42,6 +43,7 @@ fun EditProfileScreen(
         verticalArrangement = Arrangement.Center,
         modifier = Modifier
             .fillMaxSize()
+            .padding(contentPadding)
             .padding(horizontal = 24.dp)
     ) {
         Text(

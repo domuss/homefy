@@ -11,7 +11,7 @@ import com.domus.homefy.data.UserRepository
 import com.domus.homefy.ui.auth.UiState
 import kotlinx.coroutines.launch
 
-class EditProfileViewModel(
+class ProfileViewModel(
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository
 ) : ViewModel() {
