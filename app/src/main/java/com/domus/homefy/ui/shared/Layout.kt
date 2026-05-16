@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.House
 import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.NoAccounts
@@ -84,14 +85,39 @@ fun Layout(
         drawerContent = {
             ModalDrawerSheet {
                 Column(
-                    modifier = Modifier.fillMaxHeight().padding(horizontal = 16.dp).verticalScroll(
-                        rememberScrollState()
-                    )
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(horizontal = 16.dp)
+                        .verticalScroll(
+                            rememberScrollState()
+                        )
                 ) {
-                    Text(profileViewModel.currentPublicUser?.name ?: "Usuário não identificado", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        profileViewModel.currentPublicUser?.name ?: "Usuário não identificado",
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.titleLarge
+                    )
 
                     HorizontalDivider()
+                    Text("Conta", modifier = Modifier.padding(12.dp), style = MaterialTheme.typography.titleMedium)
 
+                    NavigationDrawerItem(
+                        onClick = {
+                            navController.navigate("edit-profile")
+                            scope.launch {
+                                drawerState.close()
+                            }
+                        },
+                        label = { Text("Editar perfil") },
+                        selected = false,
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = null,
+                                tint = Color.Black,
+                                modifier = Modifier.size(30.dp)
+                            )
+                        })
                     NavigationDrawerItem(
                         onClick = {
                             authViewModel.logout()
@@ -109,25 +135,23 @@ fun Layout(
 
                     HorizontalDivider()
 
-                    Column(verticalArrangement = Arrangement.Bottom, modifier = Modifier.fillMaxHeight()) {
-                        NavigationDrawerItem(
-                            onClick = {
-                                scope.launch {
-                                    drawerState.close()
-                                }
-                            },
-                            label = { Text("Fechar") },
-                            selected = false,
-                            icon = {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = null,
-                                    tint = Color.Black,
-                                    modifier = Modifier.size(30.dp)
-                                )
-                            })
+                    NavigationDrawerItem(
+                        onClick = {
+                            scope.launch {
+                                drawerState.close()
+                            }
+                        },
+                        label = { Text("Fechar") },
+                        selected = false,
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = null,
+                                tint = Color.Black,
+                                modifier = Modifier.size(30.dp)
+                            )
+                        })
 
-                    }
 
                 }
             }

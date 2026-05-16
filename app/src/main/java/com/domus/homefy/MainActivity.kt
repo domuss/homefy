@@ -116,7 +116,7 @@ fun MainNavGraph() {
                     })
             }
             composable("edit-profile") {
-                EditProfileScreen(navController)
+                EditProfileScreen(navController, padding)
             }
             composable("edit-house/{id}/{name}/{accessCode}/{isCodeActive}") { backStackEntry ->
                 val id = backStackEntry.arguments?.getString("id")?.toLong() ?: 0
