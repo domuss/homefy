@@ -1,6 +1,9 @@
 package com.domus.homefy.ui.house
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -10,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import org.koin.androidx.compose.koinViewModel
-
+import androidx.compose.foundation.lazy.items
 @Composable
 fun EditHouseScreen(
     navController: NavController,
@@ -24,9 +27,11 @@ fun EditHouseScreen(
     var isCodeActive by remember { mutableStateOf(initialIsCodeActive) }
 
     val uiStatus = houseViewModel.uiStatus
+    val members = houseViewModel.houseMembers
 
-
-
+    LaunchedEffect(houseId) {
+        houseViewModel.loadHouseMembers(houseId)
+    }
 
 
     Column(
@@ -83,6 +88,56 @@ fun EditHouseScreen(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
+
+
+
+        Text(
+            text = "Moradores da Casa",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.run { fillMaxWidth().padding(vertical = 8.dp) }
+        )
+
+        Card(
+            modifier = Modifier.fillMaxWidth().weight(1f),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
+        ) {
+            if (members.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Nenhum morador além de você.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(members) { member ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(member.name, fontSize = 16.sp)
+                            IconButton(
+                                onClick = { houseViewModel.removeMemberFromHouse(houseId, member.id) }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Remover Membro",
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                    }
+                }
+            }
+        }
+
+
+
 
 
         Button(
