@@ -185,4 +185,61 @@ class HouseRepository(private val supabase: SupabaseClient) {
         }
     }
 
+
+
+
+
+    suspend fun getTasksByHouse(houseId: Long): Result<List<Task>> {
+        return try {
+            val tasks = supabase.postgrest["tasks"].select {
+                filter {
+                    eq("house_id", houseId)
+                }
+            }.decodeList<Task>()
+
+            Result.success(tasks)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun createTask(task: Task): Result<Unit> {
+        return try {
+            supabase.postgrest["tasks"].insert(task)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun toggleTaskCompletion(taskId: Long, isCompleted: Boolean): Result<Unit> {
+        return try {
+            supabase.postgrest["tasks"].update(
+                {
+                    set("is_completed", isCompleted)
+                }
+            ) {
+                filter {
+                    eq("id", taskId)
+                }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteTask(taskId: Long): Result<Unit> {
+        return try {
+            supabase.postgrest["tasks"].delete {
+                filter {
+                    eq("id", taskId)
+                }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 }

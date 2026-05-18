@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.domus.homefy.ui.auth.AuthViewModel
+import com.domus.homefy.ui.house.TaskViewModel
 import com.domus.homefy.ui.profile.ProfileViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -72,6 +73,7 @@ fun Layout(
     navController: NavController,
     profileViewModel: ProfileViewModel = koinViewModel(),
     authViewModel: AuthViewModel = koinViewModel(),
+    taskViewModel: TaskViewModel = koinViewModel(),
     content: @Composable (PaddingValues) -> Unit
 ) {
     var expanded by remember {
@@ -263,6 +265,7 @@ fun Layout(
 
                         DropdownMenuItem(
                             text = { Text("Criar tarefa") },
+                            enabled = true,
                             leadingIcon = {
                                 Icon(
                                     Icons.Default.CheckBox,
@@ -270,8 +273,10 @@ fun Layout(
                                 )
                             },
                             onClick = {
-                                navController.navigate("create-task")
-                                expanded = !expanded
+                                taskViewModel.showAddDialog = true
+                                expanded = false
+
+
                             })
 
                         DropdownMenuItem(
