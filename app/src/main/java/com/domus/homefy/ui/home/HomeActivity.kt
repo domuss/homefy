@@ -1,26 +1,21 @@
-package com.domus.homefy.ui.home
+package com.domus.homefy.ui.home // Verifique se o seu package está assim!
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Checklist
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.domus.homefy.ui.auth.AuthViewModel
+import com.domus.homefy.ui.house.HouseUIStatus
 import com.domus.homefy.ui.house.HouseViewModel
 import org.koin.androidx.compose.koinViewModel
-
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import com.domus.homefy.ui.house.HouseUIStatus
-import kotlinx.datetime.format.Padding
 
 @Composable
 fun HomeScreen(
@@ -31,7 +26,6 @@ fun HomeScreen(
 ) {
     val houses = houseViewModel.housesList
     var codeInput by remember { mutableStateOf("") }
-
 
     val uiStatus = houseViewModel.uiStatus
 
@@ -76,19 +70,51 @@ fun HomeScreen(
         ) {
             items(houses) { house ->
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            val codigo = house.access_code ?: "VAZIO"
-                            val status = house.is_code_active ?: false
-                            navController.navigate("edit-house/${house.id}/${house.name}/$codigo/$status")
-                        }
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
-                    Text(
-                        text = house.name,
-                        modifier = Modifier.padding(16.dp),
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        // Nome da casa
+                        Text(
+                            text = house.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        // Botão de Tarefas
+                        IconButton(
+                            onClick = {
+                                navController.navigate("tasks/${house.id}/${house.name}")
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Checklist,
+                                contentDescription = "Tarefas",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                        // Botão de Configurações (Edit House)
+                        IconButton(
+                            onClick = {
+                                val codigo = house.access_code ?: "VAZIO"
+                                val status = house.is_code_active ?: false
+                                navController.navigate("edit-house/${house.id}/${house.name}/$codigo/$status")
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = "Configurações da Casa",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
             }
 
@@ -112,7 +138,6 @@ fun HomeScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            //
             Button(onClick = { navController.navigate("create-house") }) {
                 Text("Nova Casa")
             }

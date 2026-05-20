@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 data class HouseMember(
     val id: Long? = null,
     val house_id: Long,
-    val user_id: Int
+    val user_id: Int,
+    val joined_at: String? = null
 )
