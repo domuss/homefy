@@ -8,7 +8,6 @@ import  androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.domus.homefy.data.House
-import com.domus.homefy.data.MemberUser
 import com.domus.homefy.data.UserRepository
 import com.domus.homefy.ui.auth.UiState
 import kotlinx.coroutines.launch
@@ -29,37 +28,6 @@ class HouseViewModel(private  val houseRepository: HouseRepository,
     var housesList by mutableStateOf<List<House>>(emptyList())
         private set
 
-
-
-
-    var houseMembers by mutableStateOf<List<MemberUser>>(emptyList())
-        private set
-
-
-    fun loadHouseMembers(houseId: Long) {
-        viewModelScope.launch {
-            val result = houseRepository.getHouseMembers(houseId)
-            if (result.isSuccess) {
-                houseMembers = result.getOrNull() ?: emptyList()
-            } else {
-                uiStatus = HouseUIStatus.Error("Erro ao carregar membros da casa")
-            }
-        }
-    }
-
-
-    fun removeMemberFromHouse(houseId: Long, userId: Int) {
-        viewModelScope.launch {
-            uiStatus = HouseUIStatus.Loading
-            val result = houseRepository.removeMember(houseId, userId)
-            if (result.isSuccess) {
-                uiStatus = HouseUIStatus.Sucesso
-                loadHouseMembers(houseId)
-            } else {
-                uiStatus = HouseUIStatus.Error("Erro ao remover o membro da casa")
-            }
-        }
-    }
 
     private fun generateAccessCode(): String {
         val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"

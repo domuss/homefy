@@ -27,7 +27,6 @@ import com.domus.homefy.ui.auth.signup.SignUpScreen
 import com.domus.homefy.ui.home.HomeScreen
 import com.domus.homefy.ui.house.CreateHouseScreen
 import com.domus.homefy.ui.house.EditHouseScreen
-import com.domus.homefy.ui.house.TasksScreen
 import com.domus.homefy.ui.profile.EditProfileScreen
 import com.domus.homefy.ui.shared.Layout
 import org.koin.androidx.compose.koinViewModel
@@ -98,13 +97,11 @@ fun AuthNavGraph() {
 fun MainNavGraph() {
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
-    val sharedTaskViewModel: com.domus.homefy.ui.house.TaskViewModel = koinViewModel()
 
     Layout(
         snackbarHost = {
             SnackbarHost(snackbarHostState)
-        }, navController = navController,
-           taskViewModel = sharedTaskViewModel
+        }, navController = navController
     ) { padding ->
         NavHost(navController = navController, startDestination = "home") {
             composable("home") {
@@ -136,20 +133,6 @@ fun MainNavGraph() {
                     initialIsCodeActive = isCodeActive
                 )
             }
-
-            composable("tasks/{id}/{name}") { backStackEntry ->
-                val id = backStackEntry.arguments?.getString("id")?.toLong() ?: 0
-                val name = backStackEntry.arguments?.getString("name") ?: ""
-
-
-                TasksScreen(
-                    navController = navController,
-                    houseId = id,
-                    houseName = name,
-                    taskViewModel = sharedTaskViewModel
-                )
-            }
-
         }
     }
 
