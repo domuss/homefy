@@ -32,7 +32,7 @@ val appModule = module {
 
     viewModel { AuthViewModel(get()) }
     viewModel { SignUpViewModel(get()) }
-    viewModel { ProfileViewModel(get(), get()) }
+    viewModel { ProfileViewModel(get(), get(), get()) } // authRepository, userRepository, houseRepository
     viewModel { HouseViewModel(get(), get(), get()) }
     viewModel { TaskViewModel(get()) }
 }

@@ -137,11 +137,6 @@ class HouseRepository(private val supabase: SupabaseClient) {
     }
 
 
-
-
-
-
-
     suspend fun getHouseMembers(houseId: Long): Result<List<MemberUser>> {
         return try {
 
@@ -184,9 +179,6 @@ class HouseRepository(private val supabase: SupabaseClient) {
             Result.failure(e)
         }
     }
-
-
-
 
 
     suspend fun getTasksByHouse(houseId: Long): Result<List<Task>> {
@@ -241,5 +233,50 @@ class HouseRepository(private val supabase: SupabaseClient) {
             Result.failure(e)
         }
     }
+
+    suspend fun getOldestMember(houseId: Long, excludeUserId: Int): Result<HouseMember?> {
+        return try {
+            val members = supabase.postgrest["house_members"].select {
+                filter { eq("house_id", houseId) }
+            }.decodeList<HouseMember>()
+
+            val oldest = members
+                .filter { it.user_id != excludeUserId }
+                .minByOrNull { it.joined_at ?: "" }
+
+            Result.success(oldest)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Transfere a propriedade da casa para um novo creator_id.
+     */
+    suspend fun transferOwnership(houseId: Long, newCreatorId: Int): Result<Unit> {
+        return try {
+            supabase.postgrest["home"].update({ set("creator_id", newCreatorId) }) {
+                filter { eq("id", houseId) }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Remove o usuário de todas as casas em que é membro.
+     */
+    suspend fun removeMemberFromAllHouses(userId: Int): Result<Unit> {
+        return try {
+            supabase.postgrest["house_members"].delete {
+                filter { eq("user_id", userId) }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 
 }
