@@ -99,11 +99,17 @@ fun Layout(
                     )
 
                     HorizontalDivider()
-                    Text("Conta", modifier = Modifier.padding(12.dp), style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "Conta",
+                        modifier = Modifier.padding(12.dp),
+                        style = MaterialTheme.typography.titleMedium
+                    )
 
                     NavigationDrawerItem(
                         onClick = {
-                            navController.navigate("edit-profile")
+                            navController.navigate("edit-profile") {
+                                launchSingleTop = true
+                            }
                             scope.launch {
                                 drawerState.close()
                             }
@@ -257,7 +263,9 @@ fun Layout(
                             text = { Text("Criar casa") },
                             leadingIcon = { Icon(Icons.Default.House, contentDescription = null) },
                             onClick = {
-                                navController.navigate("create-house")
+                                navController.navigate("create-house") {
+                                    launchSingleTop = true
+                                }
                                 expanded = !expanded
                             })
 
@@ -270,7 +278,9 @@ fun Layout(
                                 )
                             },
                             onClick = {
-                                navController.navigate("create-task")
+                                navController.navigate("create-task") {
+                                    launchSingleTop = true
+                                }
                                 expanded = !expanded
                             })
 
@@ -283,7 +293,9 @@ fun Layout(
                                 )
                             },
                             onClick = {
-                                navController.navigate("create-bill")
+                                navController.navigate("create-bill") {
+                                    launchSingleTop = true
+                                }
                                 expanded = !expanded
                             })
                     }
@@ -296,7 +308,11 @@ fun Layout(
 
 @Composable
 fun BarButton(route: String, icon: ImageVector, navController: NavController) {
-    IconButton(onClick = { navController.navigate(route) }) {
+    IconButton(onClick = {
+        navController.navigate(route) {
+            launchSingleTop = true
+        }
+    }) {
         Icon(
             imageVector = icon, contentDescription = null
         )
