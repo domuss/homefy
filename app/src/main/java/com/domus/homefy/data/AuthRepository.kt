@@ -5,6 +5,7 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.auth.status.SessionStatus
 import io.github.jan.supabase.auth.user.UserInfo
+import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -87,6 +88,21 @@ class AuthRepository(
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+
+    suspend fun isHouseAdmin(houseId: Long, userId: Long): Boolean {
+        return try {
+            return supabase.postgrest["house_members"].select {
+                filter {
+                    eq("house_id", houseId)
+                    eq("user_id", userId)
+                    eq("role_id", Role.HOUSE_ADMIN.id)
+                }
+            }.decodeSingleOrNull<HouseMember>() != null
+        } catch (e: Exception) {
+            false
         }
     }
 }
