@@ -6,5 +6,11 @@ import kotlinx.serialization.Serializable
 data class HouseMember(
     val id: Long? = null,
     val house_id: Long,
-    val user_id: Int
+    val user_id: Int,
+    val role_id: Int
 )
+
+enum class Role(val id: Int) {
+    HOUSE_ADMIN(1),
+    RESIDENT(2)
+}

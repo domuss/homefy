@@ -95,9 +95,9 @@ class HouseRepository(private val supabase: SupabaseClient) {
     }
 
 
-    suspend fun insertMember(houseId: Long, userId: Int): Result<Unit> {
+    suspend fun insertMember(houseId: Long, userId: Int, roleId: Int = Role.RESIDENT.id): Result<Unit> {
         return try {
-            val member = HouseMember(house_id = houseId, user_id = userId)
+            val member = HouseMember(house_id = houseId, user_id = userId, role_id = roleId)
             supabase.postgrest["house_members"].insert(member)
             Result.success(Unit)
         } catch (e: Exception) {
@@ -135,5 +135,4 @@ class HouseRepository(private val supabase: SupabaseClient) {
             Result.failure(e)
         }
     }
-
 }
