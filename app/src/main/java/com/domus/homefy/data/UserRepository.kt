@@ -39,15 +39,4 @@ class UserRepository(private val supabase: SupabaseClient) {
             Result.failure(e)
         }
     }
-
-    suspend fun deleteUser(supaId: String): Result<Unit> {
-        return try {
-            supabase.postgrest["users"].delete {
-                filter { eq("supa_id", supaId) }
-            }
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
 }

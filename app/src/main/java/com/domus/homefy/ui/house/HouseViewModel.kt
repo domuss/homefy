@@ -1,65 +1,34 @@
 package com.domus.homefy.ui.house
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.ViewModel
-import com.domus.homefy.data.AuthRepository
-import com.domus.homefy.data.HouseRepository
-import  androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.domus.homefy.data.AuthRepository
 import com.domus.homefy.data.House
-import com.domus.homefy.data.MemberUser
+import com.domus.homefy.data.HouseRepository
 import com.domus.homefy.data.UserRepository
-import com.domus.homefy.ui.auth.UiState
 import kotlinx.coroutines.launch
 
-sealed interface HouseUIStatus{
-    object  Esperando: HouseUIStatus
-    object Loading: HouseUIStatus
-    object  Sucesso: HouseUIStatus
+sealed interface HouseUIStatus {
+    object Esperando : HouseUIStatus
+    object Loading : HouseUIStatus
+    object Sucesso : HouseUIStatus
     data class Error(val message: String) : HouseUIStatus
 }
-class HouseViewModel(private  val houseRepository: HouseRepository,
-                     private val authRepository : AuthRepository,
-                     private val userRepository: UserRepository
+
+class HouseViewModel(
+    private val houseRepository: HouseRepository,
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     var uiStatus by mutableStateOf<HouseUIStatus>(HouseUIStatus.Esperando)
-    private set
+        private set
     var housesList by mutableStateOf<List<House>>(emptyList())
         private set
 
-
-
-
-    var houseMembers by mutableStateOf<List<MemberUser>>(emptyList())
-        private set
-
-
-    fun loadHouseMembers(houseId: Long) {
-        viewModelScope.launch {
-            val result = houseRepository.getHouseMembers(houseId)
-            if (result.isSuccess) {
-                houseMembers = result.getOrNull() ?: emptyList()
-            } else {
-                uiStatus = HouseUIStatus.Error("Erro ao carregar membros da casa")
-            }
-        }
-    }
-
-
-    fun removeMemberFromHouse(houseId: Long, userId: Int) {
-        viewModelScope.launch {
-            uiStatus = HouseUIStatus.Loading
-            val result = houseRepository.removeMember(houseId, userId)
-            if (result.isSuccess) {
-                uiStatus = HouseUIStatus.Sucesso
-                loadHouseMembers(houseId)
-            } else {
-                uiStatus = HouseUIStatus.Error("Erro ao remover o membro da casa")
-            }
-        }
-    }
 
     private fun generateAccessCode(): String {
         val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -92,7 +61,8 @@ class HouseViewModel(private  val houseRepository: HouseRepository,
             val publicUserId = userResult.getOrNull()?.id?.toInt()
             if (publicUserId == null) {
                 if (updateUiStatus) {
-                    uiStatus = HouseUIStatus.Error("Usuário público sem id (verifique a tabela 'users')")
+                    uiStatus =
+                        HouseUIStatus.Error("Usuário público sem id (verifique a tabela 'users')")
                 }
                 return@launch
             }
@@ -149,7 +119,8 @@ class HouseViewModel(private  val houseRepository: HouseRepository,
 
             val publicUserId = userResult.getOrNull()?.id?.toInt()
             if (publicUserId == null) {
-                uiStatus = HouseUIStatus.Error("Usuário público sem id (verifique a tabela 'users')")
+                uiStatus =
+                    HouseUIStatus.Error("Usuário público sem id (verifique a tabela 'users')")
                 return@launch
             }
 
@@ -173,7 +144,6 @@ class HouseViewModel(private  val houseRepository: HouseRepository,
     }
 
 
-
     fun updateHouse(houseId: Long, newName: String) {
         if (newName.isBlank()) {
             uiStatus = HouseUIStatus.Error("Nome não pode ser vazio")
@@ -192,7 +162,6 @@ class HouseViewModel(private  val houseRepository: HouseRepository,
             }
         }
     }
-
 
 
     fun toggleCodeStatus(houseId: Long, isActive: Boolean) {
@@ -215,11 +184,11 @@ class HouseViewModel(private  val houseRepository: HouseRepository,
             if (result.isSuccess) {
                 onDeleted()
             } else {
-                uiStatus = HouseUIStatus.Error("Erro ao deletar: ${result.exceptionOrNull()?.message}")
+                uiStatus =
+                    HouseUIStatus.Error("Erro ao deletar: ${result.exceptionOrNull()?.message}")
             }
         }
     }
-
 
 
     fun joinHouse(code: String) {
@@ -253,7 +222,8 @@ class HouseViewModel(private  val houseRepository: HouseRepository,
 
 
             if (house.is_code_active != true) {
-                uiStatus = HouseUIStatus.Error("Esta casa não está aceitando novos membros no momento.")
+                uiStatus =
+                    HouseUIStatus.Error("Esta casa não está aceitando novos membros no momento.")
                 return@launch
             }
 
@@ -264,7 +234,8 @@ class HouseViewModel(private  val houseRepository: HouseRepository,
                 uiStatus = HouseUIStatus.Sucesso
                 loadHouses()
             } else {
-                uiStatus = HouseUIStatus.Error("Erro ao entrar na casa: ${joinResult.exceptionOrNull()?.message}")
+                uiStatus =
+                    HouseUIStatus.Error("Erro ao entrar na casa: ${joinResult.exceptionOrNull()?.message}")
             }
         }
     }

@@ -61,7 +61,6 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.domus.homefy.ui.auth.AuthViewModel
-import com.domus.homefy.ui.house.TaskViewModel
 import com.domus.homefy.ui.profile.ProfileViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -73,7 +72,6 @@ fun Layout(
     navController: NavController,
     profileViewModel: ProfileViewModel = koinViewModel(),
     authViewModel: AuthViewModel = koinViewModel(),
-    taskViewModel: TaskViewModel = koinViewModel(),
     content: @Composable (PaddingValues) -> Unit
 ) {
     var expanded by remember {
@@ -101,11 +99,17 @@ fun Layout(
                     )
 
                     HorizontalDivider()
-                    Text("Conta", modifier = Modifier.padding(12.dp), style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "Conta",
+                        modifier = Modifier.padding(12.dp),
+                        style = MaterialTheme.typography.titleMedium
+                    )
 
                     NavigationDrawerItem(
                         onClick = {
-                            navController.navigate("edit-profile")
+                            navController.navigate("edit-profile") {
+                                launchSingleTop = true
+                            }
                             scope.launch {
                                 drawerState.close()
                             }
@@ -259,13 +263,14 @@ fun Layout(
                             text = { Text("Criar casa") },
                             leadingIcon = { Icon(Icons.Default.House, contentDescription = null) },
                             onClick = {
-                                navController.navigate("create-house")
+                                navController.navigate("create-house") {
+                                    launchSingleTop = true
+                                }
                                 expanded = !expanded
                             })
 
                         DropdownMenuItem(
                             text = { Text("Criar tarefa") },
-                            enabled = true,
                             leadingIcon = {
                                 Icon(
                                     Icons.Default.CheckBox,
@@ -273,10 +278,10 @@ fun Layout(
                                 )
                             },
                             onClick = {
-                                taskViewModel.showAddDialog = true
-                                expanded = false
-
-
+                                navController.navigate("create-task") {
+                                    launchSingleTop = true
+                                }
+                                expanded = !expanded
                             })
 
                         DropdownMenuItem(
@@ -288,7 +293,9 @@ fun Layout(
                                 )
                             },
                             onClick = {
-                                navController.navigate("create-bill")
+                                navController.navigate("create-bill") {
+                                    launchSingleTop = true
+                                }
                                 expanded = !expanded
                             })
                     }
@@ -301,7 +308,11 @@ fun Layout(
 
 @Composable
 fun BarButton(route: String, icon: ImageVector, navController: NavController) {
-    IconButton(onClick = { navController.navigate(route) }) {
+    IconButton(onClick = {
+        navController.navigate(route) {
+            launchSingleTop = true
+        }
+    }) {
         Icon(
             imageVector = icon, contentDescription = null
         )
