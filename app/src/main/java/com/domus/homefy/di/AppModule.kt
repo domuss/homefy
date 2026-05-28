@@ -1,17 +1,24 @@
 package com.domus.homefy.di
 
 import com.domus.homefy.data.AuthRepository
+import com.domus.homefy.data.DailyQuoteDatabaseHelper
+import com.domus.homefy.data.DailyQuoteRepository
 import com.domus.homefy.data.HouseRepository
+import com.domus.homefy.data.KanyeQuoteApi
 import com.domus.homefy.data.UserRepository
 import com.domus.homefy.ui.auth.AuthViewModel
 import com.domus.homefy.ui.auth.signup.SignUpViewModel
 import com.domus.homefy.ui.house.HouseViewModel
 import com.domus.homefy.ui.profile.ProfileViewModel
+import com.domus.homefy.ui.quote.DailyQuoteViewModel
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 val appModule = module {
 
@@ -28,9 +35,19 @@ val appModule = module {
     single { UserRepository(get()) }
     single { AuthRepository(get(), get()) }
     single { HouseRepository(get()) }
+    single {
+        Retrofit.Builder()
+            .baseUrl("https://api.kanye.rest/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+    single { get<Retrofit>().create(KanyeQuoteApi::class.java) }
+    single { DailyQuoteDatabaseHelper(androidContext()) }
+    single { DailyQuoteRepository(get(), get()) }
 
     viewModel { AuthViewModel(get(), get(), get()) }
     viewModel { SignUpViewModel(get()) }
     viewModel { ProfileViewModel(get(), get()) }
     viewModel { HouseViewModel(get(), get(), get()) }
+    viewModel { DailyQuoteViewModel(get()) }
 }
