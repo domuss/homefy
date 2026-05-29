@@ -90,19 +90,4 @@ class AuthRepository(
             Result.failure(e)
         }
     }
-
-
-    suspend fun isHouseAdmin(houseId: Long, userId: Long): Boolean {
-        return try {
-            return supabase.postgrest["house_members"].select {
-                filter {
-                    eq("house_id", houseId)
-                    eq("user_id", userId)
-                    eq("role_id", Role.HOUSE_ADMIN.id)
-                }
-            }.decodeSingleOrNull<HouseMember>() != null
-        } catch (e: Exception) {
-            false
-        }
-    }
 }
