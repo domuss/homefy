@@ -1,5 +1,6 @@
 package com.domus.homefy
 
+import android.R.attr.padding
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -30,6 +31,7 @@ import com.domus.homefy.ui.house.EditHouseScreen
 import com.domus.homefy.ui.profile.EditProfileScreen
 import com.domus.homefy.ui.shared.Layout
 import org.koin.androidx.compose.koinViewModel
+import com.domus.homefy.ui.task.CreateTaskScreen
 
 val LocalNavController = compositionLocalOf<NavController> {
     error("NavController not found")
@@ -90,6 +92,8 @@ fun AuthNavGraph() {
         composable("signup") {
             SignUpScreen(navController)
         }
+
+
     }
 }
 
@@ -117,6 +121,13 @@ fun MainNavGraph() {
             }
             composable("edit-profile") {
                 EditProfileScreen(navController, padding)
+            }
+
+            composable("create-task") {
+                CreateTaskScreen(
+                    navController = navController,
+                    padding = padding
+                )
             }
             composable("edit-house/{id}/{name}/{accessCode}/{isCodeActive}") { backStackEntry ->
                 val id = backStackEntry.arguments?.getString("id")?.toLong() ?: 0
