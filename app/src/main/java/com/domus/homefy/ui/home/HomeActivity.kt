@@ -21,22 +21,26 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.domus.homefy.ui.house.HouseUIStatus
 import com.domus.homefy.ui.shared.LoadingScreen
-import kotlinx.datetime.format.Padding
+import com.domus.homefy.ui.quote.DailyQuoteCard
+import com.domus.homefy.ui.quote.DailyQuoteViewModel
 
 @Composable
 fun HomeScreen(
     navController: NavController,
     padding: PaddingValues,
     authViewModel: AuthViewModel = koinViewModel(),
-    houseViewModel: HouseViewModel = koinViewModel()
+    houseViewModel: HouseViewModel = koinViewModel(),
+    dailyQuoteViewModel: DailyQuoteViewModel = koinViewModel()
 ) {
     val houses = houseViewModel.housesList
     var codeInput by remember { mutableStateOf("") }
     val uiStatus = houseViewModel.uiStatus
+    val quoteUiStatus = dailyQuoteViewModel.uiStatus
 
     LaunchedEffect(Unit) {
         houseViewModel.loadHouses()
         authViewModel.resetIsAdmin()
+        dailyQuoteViewModel.loadDailyQuote()
     }
 
     Column(
@@ -47,6 +51,8 @@ fun HomeScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text("Minhas Casas", style = MaterialTheme.typography.headlineMedium)
+        Spacer(modifier = Modifier.height(16.dp))
+        DailyQuoteCard(uiStatus = quoteUiStatus)
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(

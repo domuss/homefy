@@ -111,6 +111,5 @@ class AuthViewModel(
         val userInfo = userRepository.getUserBySupaId(authUserInfo.id).getOrNull() ?: return false
         val userId = userInfo.id ?: return false
 
-        return repository.isHouseAdmin(houseId, userId)
-    }
+        return houseRepository.isHouseAdmin(houseId, userId)    }
 }
