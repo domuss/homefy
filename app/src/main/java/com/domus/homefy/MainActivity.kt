@@ -32,6 +32,7 @@ import com.domus.homefy.ui.profile.EditProfileScreen
 import com.domus.homefy.ui.shared.Layout
 import org.koin.androidx.compose.koinViewModel
 import com.domus.homefy.ui.task.CreateTaskScreen
+import com.domus.homefy.ui.task.TasksScreen
 
 val LocalNavController = compositionLocalOf<NavController> {
     error("NavController not found")
@@ -94,6 +95,7 @@ fun AuthNavGraph() {
         }
 
 
+
     }
 }
 
@@ -125,6 +127,13 @@ fun MainNavGraph() {
 
             composable("create-task") {
                 CreateTaskScreen(
+                    navController = navController,
+                    padding = padding
+                )
+            }
+
+            composable("tasks") {
+                TasksScreen(
                     navController = navController,
                     padding = padding
                 )

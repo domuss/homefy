@@ -11,6 +11,7 @@ data class Task(
     val assignee_id: Long? = null,
     val is_completed: Boolean = false
 )
+
 data class HouseMemberOption(
     val memberId: Long,
     val userId: Int,

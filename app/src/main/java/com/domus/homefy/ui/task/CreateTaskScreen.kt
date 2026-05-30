@@ -30,6 +30,9 @@ import com.domus.homefy.data.House
 import com.domus.homefy.data.HouseMemberOption
 import com.domus.homefy.ui.house.HouseViewModel
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.runtime.collectAsState
+import com.domus.homefy.ui.auth.AdminState
+import com.domus.homefy.ui.auth.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,8 +40,10 @@ fun CreateTaskScreen(
     navController: NavController,
     padding: PaddingValues,
     taskViewModel: TaskViewModel = koinViewModel(),
-    houseViewModel: HouseViewModel = koinViewModel()
+    houseViewModel: HouseViewModel = koinViewModel(),
+    authViewModel: AuthViewModel = koinViewModel()
 ) {
+
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
 
@@ -52,6 +57,9 @@ fun CreateTaskScreen(
     val members = taskViewModel.members
     val uiStatus = taskViewModel.uiStatus
 
+    val adminState by authViewModel.isAdmin.collectAsState()
+    val isAdmin = (adminState as? AdminState.IsAdmin)?.admin == true
+
     LaunchedEffect(Unit) {
         houseViewModel.loadHouses()
     }
@@ -61,6 +69,7 @@ fun CreateTaskScreen(
 
         selectedHouse?.id?.let { houseId ->
             taskViewModel.loadMembers(houseId)
+            authViewModel.checkAdmin(houseId)
         }
     }
 
@@ -186,8 +195,18 @@ fun CreateTaskScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        if (selectedHouse != null && !isAdmin) {
+            Text(
+                text = "Apenas administradores podem criar tarefas nesta casa.",
+                color = MaterialTheme.colorScheme.error
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
         Button(
             onClick = {
+
                 taskViewModel.createTask(
                     houseId = selectedHouse?.id,
                     assigneeId = selectedMember?.userId?.toLong(),
@@ -195,7 +214,7 @@ fun CreateTaskScreen(
                     description = description
                 )
             },
-            enabled = uiStatus != TaskUIStatus.Loading,
+            enabled = isAdmin && uiStatus != TaskUIStatus.Loading,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Salvar tarefa")
