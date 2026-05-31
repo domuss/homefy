@@ -1,16 +1,20 @@
 package com.domus.homefy.di
 
 import com.domus.homefy.data.AuthRepository
+import com.domus.homefy.data.BillRepository
 import com.domus.homefy.data.DailyQuoteDatabaseHelper
 import com.domus.homefy.data.DailyQuoteRepository
 import com.domus.homefy.data.HouseRepository
 import com.domus.homefy.data.KanyeQuoteApi
+import com.domus.homefy.data.TaskRepository
 import com.domus.homefy.data.UserRepository
 import com.domus.homefy.ui.auth.AuthViewModel
 import com.domus.homefy.ui.auth.signup.SignUpViewModel
+import com.domus.homefy.ui.bill.BillViewModel
 import com.domus.homefy.ui.house.HouseViewModel
 import com.domus.homefy.ui.profile.ProfileViewModel
 import com.domus.homefy.ui.quote.DailyQuoteViewModel
+import com.domus.homefy.ui.task.TaskViewModel
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
@@ -35,6 +39,9 @@ val appModule = module {
     single { UserRepository(get()) }
     single { AuthRepository(get(), get()) }
     single { HouseRepository(get()) }
+    single { TaskRepository(get()) }
+    single { BillRepository(get()) }
+
     single {
         Retrofit.Builder()
             .baseUrl("https://api.kanye.rest/")
@@ -49,5 +56,7 @@ val appModule = module {
     viewModel { SignUpViewModel(get()) }
     viewModel { ProfileViewModel(get(), get()) }
     viewModel { HouseViewModel(get(), get(), get()) }
+    viewModel { TaskViewModel(get(), get()) }
+    viewModel { BillViewModel(get(), get(), get(), get()) }
     viewModel { DailyQuoteViewModel(get()) }
 }

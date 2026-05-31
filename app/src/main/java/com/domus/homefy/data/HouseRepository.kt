@@ -1,9 +1,7 @@
 package com.domus.homefy.data
 
 import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
-import io.github.jan.supabase.postgrest.query.Columns
 
 class HouseRepository(private val supabase: SupabaseClient) {
 
@@ -81,7 +79,6 @@ class HouseRepository(private val supabase: SupabaseClient) {
         }
     }
 
-
     suspend fun getHouseByAccessCode(code: String): Result<House?> {
         return try {
             val house = supabase.postgrest["home"].select {
@@ -94,7 +91,6 @@ class HouseRepository(private val supabase: SupabaseClient) {
             Result.failure(e)
         }
     }
-
 
     suspend fun insertMember(
         houseId: Long,
@@ -110,7 +106,6 @@ class HouseRepository(private val supabase: SupabaseClient) {
         }
     }
 
-
     suspend fun getJoinedHouses(userId: Int): Result<List<House>> {
         return try {
             val members = supabase.postgrest["house_members"]
@@ -122,11 +117,9 @@ class HouseRepository(private val supabase: SupabaseClient) {
 
             val houseIds = members.map { it.house_id }
 
-
             if (houseIds.isEmpty()) {
                 return Result.success(emptyList())
             }
-
 
             val houses = supabase.postgrest["home"]
                 .select {
@@ -141,55 +134,55 @@ class HouseRepository(private val supabase: SupabaseClient) {
         }
     }
 
-    suspend fun getHouseMembers(houseId: Long): Result<List<HouseMemberFull>> {
-        val columns = Columns.raw(
-            """
-            id,
-            supa_id,
-            name,
-            username,
-            house_members!inner(
-                id,
-                role_id
-            )
-        """.trimIndent()
-        )
-
+    suspend fun getMembersByHouse(houseId: Long): Result<List<HouseMemberOption>> {
         return try {
-            val membersRaw = supabase.from("users").select(
-                columns = columns
-            ) {
+            val members = supabase.postgrest["house_members"].select {
                 filter {
-                    eq("house_members.house_id", houseId)
+                    eq("house_id", houseId)
                 }
-            }.decodeList<HouseMemberSupabase>()
+            }.decodeList<HouseMember>()
 
-            val members = mutableListOf<HouseMemberFull>()
-            membersRaw.forEach {
-                members.add(it.toModel())
+            val userIds = members.map { it.user_id }
+
+            if (userIds.isEmpty()) {
+                return Result.success(emptyList())
             }
 
-            Result.success(members)
+            val users = supabase.postgrest["users"].select {
+                filter {
+                    isIn("id", userIds)
+                }
+            }.decodeList<User>()
+
+            val options = members.mapNotNull { member ->
+                val memberId = member.id ?: return@mapNotNull null
+                val user = users.firstOrNull { it.id?.toInt() == member.user_id }
+
+                HouseMemberOption(
+                    memberId = memberId,
+                    userId = member.user_id,
+                    name = user?.name ?: "Membro sem nome",
+                    username = user?.username
+                )
+            }
+
+            Result.success(options)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
     suspend fun isHouseAdmin(houseId: Long, userId: Long): Boolean {
-        val columns = Columns.raw(
-            """
-            id,
-        """.trimIndent()
-        )
-
         return try {
-            supabase.from("house_members").select(columns = columns) {
+            val member = supabase.postgrest["house_members"].select {
                 filter {
                     eq("house_id", houseId)
                     eq("user_id", userId)
-                    eq("role_id", 1)
+                    eq("role_id", Role.HOUSE_ADMIN.id)
                 }
-            }.decodeSingleOrNull<Long>() != null
+            }.decodeSingleOrNull<HouseMember>()
+
+            member != null
         } catch (e: Exception) {
             false
         }
