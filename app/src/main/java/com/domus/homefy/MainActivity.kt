@@ -25,6 +25,8 @@ import com.domus.homefy.data.AuthState
 import com.domus.homefy.ui.auth.AuthViewModel
 import com.domus.homefy.ui.auth.login.LoginScreen
 import com.domus.homefy.ui.auth.signup.SignUpScreen
+import com.domus.homefy.ui.bill.BillsScreen
+import com.domus.homefy.ui.bill.CreateBillScreen
 import com.domus.homefy.ui.home.HomeScreen
 import com.domus.homefy.ui.house.CreateHouseScreen
 import com.domus.homefy.ui.house.EditHouseScreen
@@ -134,6 +136,20 @@ fun MainNavGraph() {
 
             composable("tasks") {
                 TasksScreen(
+                    navController = navController,
+                    padding = padding
+                )
+            }
+
+            composable("create-bill") {
+                CreateBillScreen(
+                    navController = navController,
+                    padding = padding
+                )
+            }
+
+            composable("bills") {
+                BillsScreen(
                     navController = navController,
                     padding = padding
                 )
