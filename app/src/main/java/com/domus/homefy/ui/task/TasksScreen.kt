@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
@@ -19,6 +21,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -56,6 +59,7 @@ fun TasksScreen(
     var selectedHouse by remember { mutableStateOf<House?>(null) }
     var houseMenuExpanded by remember { mutableStateOf(false) }
     var taskBeingEdited by remember { mutableStateOf<Task?>(null) }
+    var searchQuery by remember { mutableStateOf("") }
 
     val houses = houseViewModel.housesList
     val tasks = taskViewModel.tasks
@@ -64,6 +68,20 @@ fun TasksScreen(
 
     val adminState by authViewModel.isAdmin.collectAsState()
     val isAdmin = (adminState as? AdminState.IsAdmin)?.admin == true
+    val normalizedSearchQuery = searchQuery.trim()
+    val filteredTasks = if (normalizedSearchQuery.isBlank()) {
+        tasks
+    } else {
+        tasks.filter { task ->
+            val assigneeName = members.firstOrNull {
+                it.userId.toLong() == task.assignee_id
+            }?.name.orEmpty()
+
+            task.title.contains(normalizedSearchQuery, ignoreCase = true) ||
+                task.description.orEmpty().contains(normalizedSearchQuery, ignoreCase = true) ||
+                assigneeName.contains(normalizedSearchQuery, ignoreCase = true)
+        }
+    }
 
     LaunchedEffect(Unit) {
         houseViewModel.loadHouses()
@@ -131,6 +149,23 @@ fun TasksScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            label = { Text("Buscar tarefas") },
+            placeholder = { Text("Título, descrição ou responsável") },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = null
+                )
+            },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         if (uiStatus is TaskUIStatus.Error) {
             Text(
                 text = uiStatus.message,
@@ -150,10 +185,15 @@ fun TasksScreen(
             return@Column
         }
 
+        if (filteredTasks.isEmpty()) {
+            Text("Nenhuma tarefa encontrada para a busca.")
+            return@Column
+        }
+
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(tasks) { task ->
+            items(filteredTasks) { task ->
                 val assignee = members.firstOrNull {
                     it.userId.toLong() == task.assignee_id
                 }
