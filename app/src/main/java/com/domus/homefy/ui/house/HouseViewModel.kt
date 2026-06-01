@@ -7,8 +7,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.domus.homefy.data.AuthRepository
 import com.domus.homefy.data.House
+import com.domus.homefy.data.HouseMemberFull
 import com.domus.homefy.data.HouseRepository
+import com.domus.homefy.data.Role
 import com.domus.homefy.data.UserRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 sealed interface HouseUIStatus {
@@ -29,10 +33,25 @@ class HouseViewModel(
     var housesList by mutableStateOf<List<House>>(emptyList())
         private set
 
+    val _houseMembersState = MutableStateFlow<List<HouseMemberFull>>(emptyList())
+    val houseMembersState = _houseMembersState.asStateFlow()
 
     private fun generateAccessCode(): String {
         val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         return (1..6).map { chars.random() }.joinToString("")
+    }
+
+    private suspend fun isCurrentUserHouseAdmin(houseId: Long): Boolean {
+        val authUser = authRepository.getCurrentUser() ?: return false
+        val publicUser = userRepository.getUserBySupaId(authUser.id).getOrNull() ?: return false
+        val publicUserId = publicUser.id ?: return false
+
+        return houseRepository.isHouseAdmin(houseId, publicUserId)
+    }
+
+    private suspend fun getCurrentPublicUserId(): Long? {
+        val authUser = authRepository.getCurrentUser() ?: return null
+        return userRepository.getUserBySupaId(authUser.id).getOrNull()?.id
     }
 
     fun loadHouses(updateUiStatus: Boolean = true) {
@@ -153,6 +172,11 @@ class HouseViewModel(
         viewModelScope.launch {
             uiStatus = HouseUIStatus.Loading
 
+            if (!isCurrentUserHouseAdmin(houseId)) {
+                uiStatus = HouseUIStatus.Error("Somente administradores podem editar a casa")
+                return@launch
+            }
+
             val result = houseRepository.updateHouseName(houseId, newName)
 
             if (result.isSuccess) {
@@ -166,6 +190,11 @@ class HouseViewModel(
 
     fun toggleCodeStatus(houseId: Long, isActive: Boolean) {
         viewModelScope.launch {
+            if (!isCurrentUserHouseAdmin(houseId)) {
+                uiStatus = HouseUIStatus.Error("Somente administradores podem editar a casa")
+                return@launch
+            }
+
             val result = houseRepository.updateCodeStatus(houseId, isActive)
             if (result.isSuccess) {
                 housesList = housesList.map {
@@ -180,6 +209,11 @@ class HouseViewModel(
 
     fun deleteHouse(houseId: Long, onDeleted: () -> Unit) {
         viewModelScope.launch {
+            if (!isCurrentUserHouseAdmin(houseId)) {
+                uiStatus = HouseUIStatus.Error("Somente administradores podem excluir a casa")
+                return@launch
+            }
+
             val result = houseRepository.deleteHouse(houseId)
             if (result.isSuccess) {
                 onDeleted()
@@ -236,6 +270,63 @@ class HouseViewModel(
             } else {
                 uiStatus =
                     HouseUIStatus.Error("Erro ao entrar na casa: ${joinResult.exceptionOrNull()?.message}")
+            }
+        }
+    }
+
+    fun loadHouseMembers(houseId: Long) {
+        viewModelScope.launch {
+            uiStatus = HouseUIStatus.Loading
+            _houseMembersState.emit(houseRepository.getHouseMembers(houseId).getOrNull() ?: emptyList())
+            uiStatus = HouseUIStatus.Sucesso
+        }
+    }
+
+    fun giveAdmin(houseId: Long, memberId: Long) {
+        viewModelScope.launch {
+            uiStatus = HouseUIStatus.Loading
+
+            if (!isCurrentUserHouseAdmin(houseId)) {
+                uiStatus = HouseUIStatus.Error("Somente administradores podem promover membros")
+                return@launch
+            }
+
+            val result = houseRepository.giveAdmin(memberId)
+            if (result.isSuccess) {
+                loadHouseMembers(houseId)
+            } else {
+                uiStatus = HouseUIStatus.Error("Erro ao promover membro")
+            }
+        }
+    }
+
+    fun removeMember(houseId: Long, memberId: Long) {
+        viewModelScope.launch {
+            uiStatus = HouseUIStatus.Loading
+
+            if (!isCurrentUserHouseAdmin(houseId)) {
+                uiStatus = HouseUIStatus.Error("Somente administradores podem remover membros")
+                return@launch
+            }
+
+            val currentUserId = getCurrentPublicUserId()
+            val memberToRemove = _houseMembersState.value.firstOrNull { it.id == memberId }
+            val adminCount = _houseMembersState.value.count { it.role == Role.HOUSE_ADMIN }
+            val removingSelfAsLastAdmin = memberToRemove != null &&
+                    memberToRemove.user.id == currentUserId &&
+                    memberToRemove.role == Role.HOUSE_ADMIN &&
+                    adminCount <= 1
+
+            if (removingSelfAsLastAdmin) {
+                uiStatus = HouseUIStatus.Error("Você não pode sair sendo o último administrador")
+                return@launch
+            }
+
+            val result = houseRepository.removeMember(memberId)
+            if (result.isSuccess) {
+                loadHouseMembers(houseId)
+            } else {
+                uiStatus = HouseUIStatus.Error("Erro ao remover membro")
             }
         }
     }

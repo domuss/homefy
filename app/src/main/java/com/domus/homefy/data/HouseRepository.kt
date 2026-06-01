@@ -110,6 +110,36 @@ class HouseRepository(private val supabase: SupabaseClient) {
         }
     }
 
+    suspend fun giveAdmin(memberId: Long): Result<Unit> {
+        return try {
+            supabase.postgrest["house_members"].update(
+                {
+                    set("role_id", Role.HOUSE_ADMIN.id)
+                }
+            ) {
+                filter {
+                    eq("id", memberId)
+                }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun removeMember(memberId: Long): Result<Unit> {
+        return try {
+            supabase.postgrest["house_members"].delete {
+                filter {
+                    eq("id", memberId)
+                }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 
     suspend fun getJoinedHouses(userId: Int): Result<List<House>> {
         return try {
@@ -176,20 +206,25 @@ class HouseRepository(private val supabase: SupabaseClient) {
     }
 
     suspend fun isHouseAdmin(houseId: Long, userId: Long): Boolean {
-        val columns = Columns.raw(
-            """
-            id,
-        """.trimIndent()
-        )
-
         return try {
-            supabase.from("house_members").select(columns = columns) {
+            val isCreator = supabase.postgrest["home"].select {
+                filter {
+                    eq("id", houseId)
+                    eq("creator_id", userId.toInt())
+                }
+            }.decodeSingleOrNull<House>() != null
+
+            if (isCreator) {
+                return true
+            }
+
+            supabase.from("house_members").select {
                 filter {
                     eq("house_id", houseId)
-                    eq("user_id", userId)
-                    eq("role_id", 1)
+                    eq("user_id", userId.toInt())
+                    eq("role_id", Role.HOUSE_ADMIN.id)
                 }
-            }.decodeSingleOrNull<Long>() != null
+            }.decodeList<HouseMember>().isNotEmpty()
         } catch (e: Exception) {
             false
         }

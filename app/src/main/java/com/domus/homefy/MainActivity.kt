@@ -27,6 +27,7 @@ import com.domus.homefy.ui.auth.signup.SignUpScreen
 import com.domus.homefy.ui.home.HomeScreen
 import com.domus.homefy.ui.house.CreateHouseScreen
 import com.domus.homefy.ui.house.EditHouseScreen
+import com.domus.homefy.ui.house.ManageHouseMembersScreen
 import com.domus.homefy.ui.profile.EditProfileScreen
 import com.domus.homefy.ui.shared.Layout
 import org.koin.androidx.compose.koinViewModel
@@ -130,7 +131,17 @@ fun MainNavGraph() {
                     houseId = id,
                     currentName = name,
                     initialAccessCode = accessCode,
-                    initialIsCodeActive = isCodeActive
+                    initialIsCodeActive = isCodeActive,
+                    padding = padding
+                )
+            }
+            composable("house-members/{houseId}") { backStackEntry ->
+                val houseId = backStackEntry.arguments?.getString("houseId")?.toLong() ?: 0
+
+                ManageHouseMembersScreen(
+                    navController = navController,
+                    houseId = houseId,
+                    padding = padding
                 )
             }
         }
