@@ -156,6 +156,7 @@ fun BillsScreen(
         }
 
         LazyColumn(
+            contentPadding = PaddingValues(bottom = 96.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(bills) { bill ->

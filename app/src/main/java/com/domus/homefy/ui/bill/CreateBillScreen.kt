@@ -88,8 +88,8 @@ fun CreateBillScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(padding)
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(rememberScrollState())
+            .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 112.dp),
         verticalArrangement = Arrangement.Center
     ) {
         Text(

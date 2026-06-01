@@ -180,6 +180,9 @@ class HouseViewModel(
             val result = houseRepository.updateHouseName(houseId, newName)
 
             if (result.isSuccess) {
+                housesList = housesList.map {
+                    if (it.id == houseId) it.copy(name = newName.trim()) else it
+                }
                 uiStatus = HouseUIStatus.Sucesso
             } else {
                 uiStatus = HouseUIStatus.Error("Erro ao atualizar casa")
@@ -216,6 +219,7 @@ class HouseViewModel(
 
             val result = houseRepository.deleteHouse(houseId)
             if (result.isSuccess) {
+                housesList = housesList.filterNot { it.id == houseId }
                 onDeleted()
             } else {
                 uiStatus =

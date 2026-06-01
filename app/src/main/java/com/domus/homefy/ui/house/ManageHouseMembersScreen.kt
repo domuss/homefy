@@ -115,6 +115,7 @@ fun ManageHouseMembersScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 18.dp),
+            contentPadding = PaddingValues(bottom = 96.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(members, key = { it.id }) { member ->

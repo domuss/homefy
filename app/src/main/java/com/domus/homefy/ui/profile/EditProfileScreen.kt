@@ -2,8 +2,10 @@ package com.domus.homefy.ui.profile
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -44,7 +46,8 @@ fun EditProfileScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(contentPadding)
-            .padding(horizontal = 24.dp)
+            .verticalScroll(rememberScrollState())
+            .padding(start = 24.dp, top = 16.dp, end = 24.dp, bottom = 112.dp)
     ) {
         Text(
             text = "Editar perfil",
