@@ -44,6 +44,7 @@ class AuthViewModel(
     )
     val _isAdmin = MutableStateFlow<AdminState>(AdminState.Loading)
     val isAdmin = _isAdmin.asStateFlow()
+    private var pendingAdminHouseId: Long? = null
 
     fun clearUiState() {
         uiState = UiState.Idle
@@ -95,14 +96,19 @@ class AuthViewModel(
     }
 
     fun checkAdmin(houseId: Long) {
-        resetIsAdmin()
+        pendingAdminHouseId = houseId
+        _isAdmin.value = AdminState.Loading
 
         viewModelScope.launch {
-            _isAdmin.value = AdminState.IsAdmin(isHouseAdmin(houseId))
+            val admin = isHouseAdmin(houseId)
+            if (pendingAdminHouseId == houseId) {
+                _isAdmin.value = AdminState.IsAdmin(admin)
+            }
         }
     }
 
     fun resetIsAdmin() {
+        pendingAdminHouseId = null
         _isAdmin.value = AdminState.Loading
     }
 
@@ -111,5 +117,6 @@ class AuthViewModel(
         val userInfo = userRepository.getUserBySupaId(authUserInfo.id).getOrNull() ?: return false
         val userId = userInfo.id ?: return false
 
-        return houseRepository.isHouseAdmin(houseId, userId)    }
+        return houseRepository.isHouseAdmin(houseId, userId)
+    }
 }

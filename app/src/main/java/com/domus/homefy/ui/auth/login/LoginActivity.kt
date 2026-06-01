@@ -68,13 +68,15 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
                 authViewModel.clearUiState()
             }
 
+            is UiState.FormError -> {
+                snackbarHostState.showSnackbar((authViewModel.uiState as UiState.FormError).message)
+            }
+
             else -> {}
         }
     }
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(238, 230, 252))
@@ -84,92 +86,105 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel = koi
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White, RoundedCornerShape(12.dp))
-                .padding(24.dp)
+                .fillMaxSize()
         ) {
-            Box(
-                contentAlignment = Alignment.Center,
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
                 modifier = Modifier
-                    .size(50.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFF6650A4))
+                    .fillMaxWidth()
+                    .background(Color.White, RoundedCornerShape(12.dp))
+                    .padding(24.dp)
             ) {
-                Icon(
-                    Icons.Filled.Home, contentDescription = "Lock icon",
-                    tint = Color.White,
-                    modifier = Modifier.size(30.dp)
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF6650A4))
+                ) {
+                    Icon(
+                        Icons.Filled.Home, contentDescription = "Lock icon",
+                        tint = Color.White,
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.padding(8.dp))
+
+                Text(
+                    text = "Acesse sua conta",
+                    fontSize = 32.sp,
+                    color = Color.hsl(hue = 271F, saturation = 0.98F, lightness = 0.38F)
                 )
-            }
 
-            Spacer(modifier = Modifier.padding(8.dp))
+                Spacer(modifier = Modifier.padding(8.dp))
 
-            Text(
-                text = "Acesse sua conta",
-                fontSize = 32.sp,
-                color = Color.hsl(hue = 271F, saturation = 0.98F, lightness = 0.38F)
-            )
-
-            Spacer(modifier = Modifier.padding(8.dp))
-
-            Label("E-mail")
-            OutlinedTextField(
-                placeholder = { Text("placeholder@email.com") },
-                value = email,
-                onValueChange = { email = it },
-                modifier = inputModifier,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email
-                ),
-                textStyle = TextStyle(color = Color.Black),
-                isError = (authViewModel.uiState is UiState.Error) or (authViewModel.uiState is UiState.FormError),
-                supportingText = {
-                    if (authViewModel.uiState is UiState.FormError) Text("Campo Obrigatório")
-                }
-            )
-
-            Spacer(modifier = Modifier.padding(4.dp))
-
-            Label("Senha")
-            OutlinedTextField(
-                placeholder = { Text("········", fontWeight = FontWeight.ExtraBold) },
-                value = password,
-                onValueChange = { password = it },
-                visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
-                modifier = inputModifier,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password
-                ),
-                trailingIcon = {
-                    IconButton(onClick = { visible = !visible }) {
-                        Icon(
-                            imageVector = if (visible) Icons.Filled.RollerShadesClosed else Icons.Filled.RollerShades,
-                            contentDescription = null
-                        )
+                Label("E-mail")
+                OutlinedTextField(
+                    placeholder = { Text("placeholder@email.com") },
+                    value = email,
+                    onValueChange = { email = it },
+                    modifier = inputModifier,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email
+                    ),
+                    textStyle = TextStyle(color = Color.Black),
+                    isError = (authViewModel.uiState is UiState.Error) or (authViewModel.uiState is UiState.FormError),
+                    supportingText = {
+                        if (authViewModel.uiState is UiState.FormError) Text("Campo Obrigatório")
                     }
-                },
-                textStyle = TextStyle(color = Color.Black),
-                isError = (authViewModel.uiState is UiState.Error) or (authViewModel.uiState is UiState.FormError),
-                supportingText = {
-                    if (authViewModel.uiState is UiState.FormError) Text("Campo Obrigatório")
+                )
+
+                Spacer(modifier = Modifier.padding(4.dp))
+
+                Label("Senha")
+                OutlinedTextField(
+                    placeholder = { Text("········", fontWeight = FontWeight.ExtraBold) },
+                    value = password,
+                    onValueChange = { password = it },
+                    visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
+                    modifier = inputModifier,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password
+                    ),
+                    trailingIcon = {
+                        IconButton(onClick = { visible = !visible }) {
+                            Icon(
+                                imageVector = if (visible) Icons.Filled.RollerShadesClosed else Icons.Filled.RollerShades,
+                                contentDescription = null
+                            )
+                        }
+                    },
+                    textStyle = TextStyle(color = Color.Black),
+                    isError = (authViewModel.uiState is UiState.Error) or (authViewModel.uiState is UiState.FormError),
+                    supportingText = {
+                        if (authViewModel.uiState is UiState.FormError) Text("Campo Obrigatório")
+                    }
+                )
+
+                Spacer(modifier = Modifier.padding(4.dp))
+
+                Button(modifier = Modifier.fillMaxWidth(), onClick = {
+                    authViewModel.login(email, password)
+                }, enabled = submitEnabled) {
+                    Text("Entrar")
                 }
-            )
 
-            Spacer(modifier = Modifier.padding(4.dp))
-
-            Button(modifier = Modifier.fillMaxWidth(), onClick = {
-                authViewModel.login(email, password)
-            }, enabled = submitEnabled) {
-                Text("Entrar")
-            }
-
-            TextButton(onClick = {
-                navController.navigate("signup")
-            }) {
-                Text("Não tem conta? Cadastre-se")
+                TextButton(onClick = {
+                    navController.navigate("signup")
+                }) {
+                    Text("Não tem conta? Cadastre-se")
+                }
             }
         }
 
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 24.dp)
+        )
     }
 }
 
