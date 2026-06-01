@@ -86,7 +86,9 @@ fun HomeScreen(
 
             is HouseUIStatus.Sucesso -> {
                 LazyColumn(
-                    modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(bottom = 96.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(houses) { house ->
                         Card(

@@ -1,6 +1,8 @@
 package com.domus.homefy.ui.house
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -12,6 +14,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun CreateHouseScreen(
+    padding: PaddingValues,
     houseViewModel: HouseViewModel = koinViewModel(),
     onHouseCreated: () -> Unit
 ) {
@@ -23,7 +26,9 @@ fun CreateHouseScreen(
         verticalArrangement = Arrangement.Center,
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(padding)
+            .verticalScroll(rememberScrollState())
+            .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 112.dp)
     ) {
         Text(
             text = "Nova Casa",

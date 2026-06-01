@@ -13,7 +13,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Group
+import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.setValue
@@ -81,9 +83,26 @@ fun EditHouseScreenContent(
     houseViewModel: HouseViewModel = koinViewModel()
 ) {
     var isCodeActive by remember { mutableStateOf(initialIsCodeActive) }
+    var houseName by remember(currentName) { mutableStateOf(currentName) }
+    var displayedHouseName by remember(currentName) { mutableStateOf(currentName) }
+    var pendingHouseName by remember { mutableStateOf<String?>(null) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     val houseMembers by houseViewModel.houseMembersState.collectAsState()
     val uiStatus = houseViewModel.uiStatus
+    val actionsEnabled = isAdmin && uiStatus != HouseUIStatus.Loading
+
+    LaunchedEffect(uiStatus) {
+        if (uiStatus is HouseUIStatus.Sucesso) {
+            pendingHouseName?.let { savedName ->
+                displayedHouseName = savedName
+                houseName = savedName
+                pendingHouseName = null
+            }
+        } else if (uiStatus is HouseUIStatus.Error) {
+            pendingHouseName = null
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -91,15 +110,30 @@ fun EditHouseScreenContent(
             .background(Color(0xFFFAFAFA))
             .padding(padding)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 18.dp, vertical = 14.dp),
+            .padding(start = 18.dp, top = 14.dp, end = 18.dp, bottom = 112.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            currentName.ifBlank { "Casa" },
+            "Seja bem-vindo a ${displayedHouseName.ifBlank { "Casa" }}!",
             fontSize = 26.sp,
             fontWeight = FontWeight.ExtraBold,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(Modifier.height(18.dp))
+
+        HouseNameCard(
+            houseName = houseName,
+            isAdmin = isAdmin,
+            actionsEnabled = actionsEnabled,
+            onNameChange = { houseName = it },
+            onSave = {
+                val trimmedName = houseName.trim()
+                pendingHouseName = trimmedName
+                houseViewModel.updateHouse(houseId, trimmedName)
+            },
+            onDelete = { showDeleteDialog = true }
         )
 
         Spacer(Modifier.height(18.dp))
@@ -145,6 +179,112 @@ fun EditHouseScreenContent(
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
+        }
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Excluir casa") },
+            text = { Text("Tem certeza que deseja excluir ${displayedHouseName.ifBlank { "esta casa" }}?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        houseViewModel.deleteHouse(houseId) {
+                            navController.popBackStack()
+                        }
+                    },
+                    enabled = actionsEnabled
+                ) {
+                    Text("Excluir", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun HouseNameCard(
+    houseName: String,
+    isAdmin: Boolean,
+    actionsEnabled: Boolean,
+    onNameChange: (String) -> Unit,
+    onSave: () -> Unit,
+    onDelete: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = Color(0xFFD3D3D3),
+                shape = RoundedCornerShape(8.dp),
+            )
+            .background(Color.White, RoundedCornerShape(8.dp))
+            .padding(14.dp)
+    ) {
+        Text(
+            "Nome da casa",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(Modifier.height(10.dp))
+
+        OutlinedTextField(
+            value = houseName,
+            onValueChange = onNameChange,
+            enabled = isAdmin,
+            singleLine = true,
+            label = { Text("Nome") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(Modifier.height(12.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Button(
+                onClick = onSave,
+                enabled = actionsEnabled && houseName.isNotBlank(),
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Icon(
+                    Icons.Outlined.Save,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text("Salvar")
+            }
+
+            OutlinedButton(
+                onClick = onDelete,
+                enabled = actionsEnabled,
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Icon(
+                    Icons.Outlined.Delete,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text("Excluir")
+            }
         }
     }
 }

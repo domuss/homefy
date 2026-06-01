@@ -119,6 +119,7 @@ fun MainNavGraph() {
 
             composable("create-house") {
                 CreateHouseScreen(
+                    padding = padding,
                     onHouseCreated = {
 
                         navController.popBackStack()
