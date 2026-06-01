@@ -1,5 +1,6 @@
 package com.domus.homefy
 
+import android.R.attr.padding
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -24,6 +25,8 @@ import com.domus.homefy.data.AuthState
 import com.domus.homefy.ui.auth.AuthViewModel
 import com.domus.homefy.ui.auth.login.LoginScreen
 import com.domus.homefy.ui.auth.signup.SignUpScreen
+import com.domus.homefy.ui.bill.BillsScreen
+import com.domus.homefy.ui.bill.CreateBillScreen
 import com.domus.homefy.ui.home.HomeScreen
 import com.domus.homefy.ui.house.CreateHouseScreen
 import com.domus.homefy.ui.house.EditHouseScreen
@@ -31,6 +34,8 @@ import com.domus.homefy.ui.house.ManageHouseMembersScreen
 import com.domus.homefy.ui.profile.EditProfileScreen
 import com.domus.homefy.ui.shared.Layout
 import org.koin.androidx.compose.koinViewModel
+import com.domus.homefy.ui.task.CreateTaskScreen
+import com.domus.homefy.ui.task.TasksScreen
 
 val LocalNavController = compositionLocalOf<NavController> {
     error("NavController not found")
@@ -91,6 +96,9 @@ fun AuthNavGraph() {
         composable("signup") {
             SignUpScreen(navController)
         }
+
+
+
     }
 }
 
@@ -118,6 +126,34 @@ fun MainNavGraph() {
             }
             composable("edit-profile") {
                 EditProfileScreen(navController, padding)
+            }
+
+            composable("create-task") {
+                CreateTaskScreen(
+                    navController = navController,
+                    padding = padding
+                )
+            }
+
+            composable("tasks") {
+                TasksScreen(
+                    navController = navController,
+                    padding = padding
+                )
+            }
+
+            composable("create-bill") {
+                CreateBillScreen(
+                    navController = navController,
+                    padding = padding
+                )
+            }
+
+            composable("bills") {
+                BillsScreen(
+                    navController = navController,
+                    padding = padding
+                )
             }
             composable("edit-house/{id}/{name}/{accessCode}/{isCodeActive}") { backStackEntry ->
                 val id = backStackEntry.arguments?.getString("id")?.toLong() ?: 0
