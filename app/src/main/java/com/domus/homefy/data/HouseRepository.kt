@@ -1,6 +1,7 @@
 package com.domus.homefy.data
 
 import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 
 class HouseRepository(private val supabase: SupabaseClient) {
@@ -198,6 +199,46 @@ class HouseRepository(private val supabase: SupabaseClient) {
             }
 
             Result.success(options)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getHouseMembers(houseId: Long): Result<List<HouseMemberFull>> {
+        return try {
+            val members = supabase.postgrest["house_members"].select {
+                filter {
+                    eq("house_id", houseId)
+                }
+            }.decodeList<HouseMember>()
+
+            val userIds = members.map { it.user_id }
+
+            if (userIds.isEmpty()) {
+                return Result.success(emptyList())
+            }
+
+            val users = supabase.postgrest["users"].select {
+                filter {
+                    isIn("id", userIds)
+                }
+            }.decodeList<User>()
+
+            val houseMembers = members.mapNotNull { member ->
+                val memberId = member.id ?: return@mapNotNull null
+                val user = users.firstOrNull { it.id?.toInt() == member.user_id }
+                    ?: return@mapNotNull null
+                val role = Role.entries.firstOrNull { it.id == member.role_id }
+                    ?: return@mapNotNull null
+
+                HouseMemberFull(
+                    id = memberId,
+                    user = user,
+                    role = role
+                )
+            }
+
+            Result.success(houseMembers)
         } catch (e: Exception) {
             Result.failure(e)
         }
