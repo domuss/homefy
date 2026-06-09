@@ -63,7 +63,7 @@ fun CreateTaskScreen(
     val isAdmin = (adminState as? AdminState.IsAdmin)?.admin == true
 
     LaunchedEffect(Unit) {
-        houseViewModel.loadHouses()
+        houseViewModel.loadHousesWithAdmin()
     }
 
     LaunchedEffect(selectedHouse?.id) {

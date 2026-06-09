@@ -268,4 +268,33 @@ class HouseRepository(private val supabase: SupabaseClient) {
             false
         }
     }
+
+    suspend fun getHousesByUserAdmin(userId: Int): Result<List<House>> {
+        return try {
+            val members = supabase.postgrest["house_members"]
+                .select {
+                    filter {
+                        eq("user_id", userId)
+                        eq("role_id", Role.HOUSE_ADMIN.id)
+                    }
+                }.decodeList<HouseMember>()
+
+            val houseIds = members.map { it.house_id }
+
+            if (houseIds.isEmpty()) {
+                return Result.success(emptyList())
+            }
+
+            val houses = supabase.postgrest["home"]
+                .select {
+                    filter {
+                        isIn("id", houseIds)
+                    }
+                }.decodeList<House>()
+
+            Result.success(houses)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

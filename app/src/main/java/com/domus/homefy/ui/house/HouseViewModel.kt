@@ -54,6 +54,45 @@ class HouseViewModel(
         return userRepository.getUserBySupaId(authUser.id).getOrNull()?.id
     }
 
+    fun loadHousesWithAdmin() {
+        viewModelScope.launch {
+            uiStatus = HouseUIStatus.Loading
+
+            val supaId = authRepository.getCurrentUser()?.id
+
+            if (supaId == null) {
+                uiStatus = HouseUIStatus.Error("Usuário não está logado")
+                return@launch
+            }
+
+            val userResult = userRepository.getUserBySupaId(supaId)
+            if (userResult.isFailure) {
+                val message = userResult.exceptionOrNull()?.message ?: "Erro desconhecido"
+                uiStatus = HouseUIStatus.Error("Erro ao buscar usuário público: $message")
+                return@launch
+            }
+
+            val publicUserId = userResult.getOrNull()?.id?.toInt()
+            if (publicUserId == null) {
+                uiStatus =
+                    HouseUIStatus.Error("Usuário público sem id (verifique a tabela 'users')")
+                return@launch
+            }
+
+            val result = houseRepository.getHousesByUserAdmin(publicUserId)
+
+            if (result.isFailure) {
+                val exception = result.exceptionOrNull()
+                val message = if (exception != null) ": ${exception.message}" else ""
+                uiStatus = HouseUIStatus.Error("Erro ao buscar casas$message")
+                return@launch
+            }
+
+            housesList = result.getOrNull() ?: emptyList()
+            uiStatus = HouseUIStatus.Sucesso
+        }
+    }
+
     fun loadHouses(updateUiStatus: Boolean = true) {
         viewModelScope.launch {
             if (updateUiStatus) {
@@ -281,7 +320,9 @@ class HouseViewModel(
     fun loadHouseMembers(houseId: Long) {
         viewModelScope.launch {
             uiStatus = HouseUIStatus.Loading
-            _houseMembersState.emit(houseRepository.getHouseMembers(houseId).getOrNull() ?: emptyList())
+            _houseMembersState.emit(
+                houseRepository.getHouseMembers(houseId).getOrNull() ?: emptyList()
+            )
             uiStatus = HouseUIStatus.Sucesso
         }
     }
