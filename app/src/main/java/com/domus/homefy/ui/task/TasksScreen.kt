@@ -1,5 +1,6 @@
 package com.domus.homefy.ui.task
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -44,6 +45,7 @@ import com.domus.homefy.data.HouseMemberOption
 import com.domus.homefy.data.Task
 import com.domus.homefy.ui.auth.AdminState
 import com.domus.homefy.ui.auth.AuthViewModel
+import com.domus.homefy.ui.house.HouseUIStatus
 import com.domus.homefy.ui.house.HouseViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -52,6 +54,7 @@ import org.koin.androidx.compose.koinViewModel
 fun TasksScreen(
     navController: NavController,
     padding: PaddingValues,
+    houseId: Long? = null,
     taskViewModel: TaskViewModel = koinViewModel(),
     houseViewModel: HouseViewModel = koinViewModel(),
     authViewModel: AuthViewModel = koinViewModel()
@@ -78,13 +81,33 @@ fun TasksScreen(
             }?.name.orEmpty()
 
             task.title.contains(normalizedSearchQuery, ignoreCase = true) ||
-                task.description.orEmpty().contains(normalizedSearchQuery, ignoreCase = true) ||
-                assigneeName.contains(normalizedSearchQuery, ignoreCase = true)
+                    task.description.orEmpty().contains(normalizedSearchQuery, ignoreCase = true) ||
+                    assigneeName.contains(normalizedSearchQuery, ignoreCase = true)
         }
     }
 
+
     LaunchedEffect(Unit) {
         houseViewModel.loadHouses()
+    }
+
+    LaunchedEffect(houseViewModel.uiStatus) {
+        when (houseViewModel.uiStatus) {
+            is HouseUIStatus.Sucesso -> {
+                if (houseId != null) {
+                    Log.d("TaskScreen", "houseId: $houseId")
+                    selectedHouse = houses.firstOrNull { house ->
+                        Log.d("TaskScreen", "houseFilterId: ${house.id}")
+
+                        house.id == houseId
+                    }
+                    Log.d("TaskScreen", "selectedHouse: ${selectedHouse?.name ?: "Não achou"}")
+
+                }
+            }
+
+            else -> {}
+        }
     }
 
     LaunchedEffect(houses) {

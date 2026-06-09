@@ -11,10 +11,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.CheckBox
+import androidx.compose.material.icons.outlined.Checklist
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Group
+import androidx.compose.material.icons.outlined.List
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -30,9 +35,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.domus.homefy.data.HouseMemberFull
 import com.domus.homefy.data.Role
+import com.domus.homefy.data.Task
 import com.domus.homefy.ui.auth.AdminState
 import com.domus.homefy.ui.auth.AuthViewModel
 import com.domus.homefy.ui.shared.LoadingScreen
+import com.domus.homefy.ui.task.TaskViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -80,7 +87,8 @@ fun EditHouseScreenContent(
     initialIsCodeActive: Boolean,
     isAdmin: Boolean,
     padding: PaddingValues,
-    houseViewModel: HouseViewModel = koinViewModel()
+    houseViewModel: HouseViewModel = koinViewModel(),
+    taskViewModel: TaskViewModel = koinViewModel()
 ) {
     var isCodeActive by remember { mutableStateOf(initialIsCodeActive) }
     var houseName by remember(currentName) { mutableStateOf(currentName) }
@@ -89,6 +97,8 @@ fun EditHouseScreenContent(
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     val houseMembers by houseViewModel.houseMembersState.collectAsState()
+    val tasks = taskViewModel.tasks
+
     val uiStatus = houseViewModel.uiStatus
     val actionsEnabled = isAdmin && uiStatus != HouseUIStatus.Loading
 
@@ -102,6 +112,10 @@ fun EditHouseScreenContent(
         } else if (uiStatus is HouseUIStatus.Error) {
             pendingHouseName = null
         }
+    }
+
+    LaunchedEffect(houseId) {
+        taskViewModel.loadTasks(houseId)
     }
 
     Column(
@@ -133,19 +147,27 @@ fun EditHouseScreenContent(
                 pendingHouseName = trimmedName
                 houseViewModel.updateHouse(houseId, trimmedName)
             },
-            onDelete = { showDeleteDialog = true }
+            onDelete = { showDeleteDialog = true })
+
+        Spacer(Modifier.height(18.dp))
+
+        ManagementCard(
+            items = houseMembers, canManage = isAdmin, onManage = {
+                navController.navigate("house-members/$houseId") {
+                    launchSingleTop = true
+                }
+            }, title = "Membros da casa",
+            icon = Icons.Outlined.Group
         )
 
         Spacer(Modifier.height(18.dp))
 
-        HouseMembersCard(
-            members = houseMembers,
-            canManageMembers = isAdmin,
-            onManageMembers = {
-                navController.navigate("house-members/$houseId") {
+        ManagementCard(
+            items = tasks, canManage = isAdmin, onManage = {
+                navController.navigate("tasks/$houseId") {
                     launchSingleTop = true
                 }
-            }
+            }, title = "Tarefas da casa", icon = Icons.Outlined.Checklist
         )
 
         Spacer(Modifier.height(18.dp))
@@ -157,8 +179,7 @@ fun EditHouseScreenContent(
             onCodeStatusChange = { newStatus ->
                 isCodeActive = newStatus
                 houseViewModel.toggleCodeStatus(houseId, newStatus)
-            }
-        )
+            })
 
         Spacer(Modifier.height(18.dp))
 
@@ -194,8 +215,7 @@ fun EditHouseScreenContent(
                         houseViewModel.deleteHouse(houseId) {
                             navController.popBackStack()
                         }
-                    },
-                    enabled = actionsEnabled
+                    }, enabled = actionsEnabled
                 ) {
                     Text("Excluir", color = MaterialTheme.colorScheme.error)
                 }
@@ -204,10 +224,10 @@ fun EditHouseScreenContent(
                 TextButton(onClick = { showDeleteDialog = false }) {
                     Text("Cancelar")
                 }
-            }
-        )
+            })
     }
 }
+
 
 @Composable
 private fun HouseNameCard(
@@ -250,8 +270,7 @@ private fun HouseNameCard(
         Spacer(Modifier.height(12.dp))
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Button(
                 onClick = onSave,
@@ -260,9 +279,7 @@ private fun HouseNameCard(
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Icon(
-                    Icons.Outlined.Save,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
+                    Icons.Outlined.Save, contentDescription = null, modifier = Modifier.size(18.dp)
                 )
                 Spacer(Modifier.width(8.dp))
                 Text("Salvar")
@@ -290,12 +307,14 @@ private fun HouseNameCard(
 }
 
 @Composable
-private fun HouseMembersCard(
-    members: List<HouseMemberFull>,
-    canManageMembers: Boolean,
-    onManageMembers: () -> Unit
+private fun <T> ManagementCard(
+    items: List<T>,
+    canManage: Boolean,
+    onManage: () -> Unit,
+    title: String,
+    icon: ImageVector = Icons.AutoMirrored.Outlined.List
 ) {
-    val visibleMembers = members.take(3)
+    val visibleItems = items.take(3)
 
     Column(
         modifier = Modifier
@@ -314,39 +333,35 @@ private fun HouseMembersCard(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                "Membros da casa",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
+                title, fontSize = 18.sp, fontWeight = FontWeight.Bold
             )
-
             AssistChip(
                 onClick = {},
                 enabled = false,
-                label = { Text(members.size.toString()) },
+                label = { Text(items.size.toString()) },
                 leadingIcon = {
                     Icon(
-                        Icons.Outlined.Group,
+                        imageVector = icon,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp)
                     )
-                }
-            )
+                })
         }
 
         Spacer(Modifier.height(8.dp))
 
-        if (members.isEmpty()) {
+        if (items.isEmpty()) {
             Text(
-                "Não há membros",
+                "Nada por aqui...",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(vertical = 12.dp)
             )
         } else {
-            visibleMembers.forEach { member ->
-                MemberRow(member)
+            visibleItems.forEach { item ->
+                ManagementRowCard(item)
             }
 
-            if (members.size > visibleMembers.size) {
+            if (items.size > visibleItems.size) {
                 Text(
                     "...",
                     modifier = Modifier.padding(start = 8.dp, top = 2.dp),
@@ -355,20 +370,98 @@ private fun HouseMembersCard(
             }
         }
 
-        if (canManageMembers) {
+        if (canManage) {
             Spacer(Modifier.height(8.dp))
 
             OutlinedButton(
-                onClick = onManageMembers,
+                onClick = onManage,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
+                    .fillMaxWidth()
                     .height(36.dp),
                 shape = RoundedCornerShape(8.dp),
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp)
             ) {
-                Text("Gerenciar membros")
+                Text("Gerenciar")
             }
         }
+    }
+
+}
+
+@Composable
+private fun <T> ManagementRowCard(item: T) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp)
+            .border(1.dp, Color(0xFFD3D3D3), RoundedCornerShape(8.dp))
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        when (item) {
+            is HouseMemberFull -> {
+                val name = item.user.name ?: item.user.username ?: "Usuário"
+
+                Icon(
+                    Icons.Outlined.AccountCircle,
+                    contentDescription = null,
+                    tint = Color(0xFF777777),
+                    modifier = Modifier.size(30.dp)
+                )
+
+                Spacer(Modifier.width(10.dp))
+
+                Text(
+                    name,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f)
+                )
+
+                RoleChip(item.role)
+
+            }
+
+            is Task -> {
+                Icon(
+                    Icons.Outlined.CheckBox,
+                    contentDescription = null,
+                    tint = Color(0xFF777777),
+                    modifier = Modifier.size(30.dp)
+                )
+
+                Spacer(Modifier.width(10.dp))
+
+                Text(
+                    item.title,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RoleChip(role: Role) {
+    val label = when (role) {
+        Role.HOUSE_ADMIN -> "Admin"
+        Role.RESIDENT -> "Morador"
+    }
+
+    Surface(
+        color = Color.White,
+        contentColor = Color(0xFF444444),
+        border = BorderStroke(1.dp, Color(0xFFD3D3D3)),
+        shape = RoundedCornerShape(50)
+    ) {
+        Text(
+            label,
+            fontSize = 12.sp,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
+        )
     }
 }
 
@@ -424,8 +517,7 @@ private fun InviteCodeCard(
                         ClipData.newPlainText("Código de convite", accessCode)
                     )
                     copied = true
-                },
-                enabled = accessCode.isNotBlank()
+                }, enabled = accessCode.isNotBlank()
             ) {
                 Icon(
                     Icons.Outlined.ContentCopy,
@@ -453,176 +545,8 @@ private fun InviteCodeCard(
         ) {
             Text(if (isCodeActive) "Convites ativos" else "Convites bloqueados")
             Switch(
-                checked = isCodeActive,
-                enabled = isAdmin,
-                onCheckedChange = onCodeStatusChange
+                checked = isCodeActive, enabled = isAdmin, onCheckedChange = onCodeStatusChange
             )
         }
     }
 }
-
-@Composable
-private fun MemberRow(member: HouseMemberFull) {
-    val name = member.user.name ?: member.user.username ?: "Usuário"
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp)
-            .border(1.dp, Color(0xFFD3D3D3), RoundedCornerShape(8.dp))
-            .padding(horizontal = 10.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            Icons.Outlined.AccountCircle,
-            contentDescription = null,
-            tint = Color(0xFF777777),
-            modifier = Modifier.size(30.dp)
-        )
-
-        Spacer(Modifier.width(10.dp))
-
-        Text(
-            name,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.weight(1f)
-        )
-
-        RoleChip(member.role)
-    }
-}
-
-@Composable
-private fun RoleChip(role: Role) {
-    val label = when (role) {
-        Role.HOUSE_ADMIN -> "Admin"
-        Role.RESIDENT -> "Morador"
-    }
-
-    Surface(
-        color = Color.White,
-        contentColor = Color(0xFF444444),
-        border = BorderStroke(1.dp, Color(0xFFD3D3D3)),
-        shape = RoundedCornerShape(50)
-    ) {
-        Text(
-            label,
-            fontSize = 12.sp,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
-        )
-    }
-}
-
-//@Composable
-//fun OldScreen() {
-//
-//    Column(
-//        horizontalAlignment = Alignment.CenterHorizontally,
-//        verticalArrangement = Arrangement.Center,
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .padding(16.dp)
-//    ) {
-//        Text("Editar Casa", fontSize = 28.sp)
-//
-//        Spacer(modifier = Modifier.height(24.dp))
-//
-//        OutlinedTextField(
-//            value = houseName,
-//            onValueChange = { houseName = it },
-//            label = { Text("Nome da Casa") },
-//            modifier = Modifier.fillMaxWidth()
-//        )
-//
-//        Spacer(modifier = Modifier.height(16.dp))
-//
-//        Card(
-//            modifier = Modifier.fillMaxWidth(),
-//            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-//        ) {
-//            Column(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(16.dp)
-//            ) {
-//                Text(
-//                    "Código de Convite",
-//                    fontSize = 14.sp,
-//                    color = MaterialTheme.colorScheme.onSurfaceVariant
-//                )
-//
-//
-//                Text(
-//                    initialAccessCode,
-//                    fontSize = 24.sp,
-//                    fontWeight = FontWeight.Bold,
-//                    letterSpacing = 2.sp
-//                )
-//
-//                Spacer(modifier = Modifier.height(8.dp))
-//
-//                Row(
-//                    modifier = Modifier.fillMaxWidth(),
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    horizontalArrangement = Arrangement.SpaceBetween
-//                ) {
-//                    Text(
-//                        if (isCodeActive) "Convites Ativos" else "Convites Bloqueados",
-//                        fontSize = 16.sp
-//                    )
-//                    Switch(
-//                        checked = isCodeActive,
-//                        onCheckedChange = { novoStatus ->
-//                            isCodeActive = novoStatus
-//                            houseViewModel.toggleCodeStatus(houseId, novoStatus)
-//                        }
-//                    )
-//                }
-//            }
-//        }
-//
-//        Spacer(modifier = Modifier.height(24.dp))
-//
-//
-//        Button(
-//            onClick = {
-//                houseViewModel.updateHouse(houseId, houseName)
-//            },
-//            enabled = uiStatus != HouseUIStatus.Loading,
-//            modifier = Modifier.fillMaxWidth()
-//        ) {
-//            Text("Salvar")
-//        }
-//
-//        Spacer(modifier = Modifier.height(8.dp))
-//
-//        OutlinedButton(
-//            onClick = {
-//
-//                houseViewModel.deleteHouse(houseId) {
-//                    navController.popBackStack()
-//                }
-//            },
-//            enabled = uiStatus != HouseUIStatus.Loading,
-//            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-//            modifier = Modifier.fillMaxWidth()
-//        ) {
-//            Text("Excluir Casa")
-//        }
-//
-//        when (uiStatus) {
-//            is HouseUIStatus.Sucesso -> {
-//                LaunchedEffect(Unit) {
-//                    navController.popBackStack()
-//                }
-//            }
-//
-//            is HouseUIStatus.Error -> {
-//                Text(uiStatus.message)
-//            }
-//
-//            else -> {}
-//        }
-//    }
-//}
