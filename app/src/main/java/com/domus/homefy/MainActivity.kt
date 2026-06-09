@@ -2,6 +2,7 @@ package com.domus.homefy
 
 import android.R.attr.padding
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -142,6 +143,19 @@ fun MainNavGraph() {
                     padding = padding
                 )
             }
+
+            composable("tasks/{houseId}") { backStackEntry ->
+                val houseId = backStackEntry.arguments?.getString("houseId")?.toLong()
+
+                Log.d("ROTA", "houseId: $houseId")
+
+                TasksScreen(
+                    navController = navController,
+                    padding = padding,
+                    houseId = houseId
+                )
+            }
+
 
             composable("create-bill") {
                 CreateBillScreen(
