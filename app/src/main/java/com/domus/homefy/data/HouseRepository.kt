@@ -271,6 +271,13 @@ class HouseRepository(private val supabase: SupabaseClient) {
 
     suspend fun getHousesByUserAdmin(userId: Int): Result<List<House>> {
         return try {
+            val createdHouses = supabase.postgrest["home"]
+                .select {
+                    filter {
+                        eq("creator_id", userId)
+                    }
+                }.decodeList<House>()
+
             val members = supabase.postgrest["house_members"]
                 .select {
                     filter {
@@ -282,17 +289,17 @@ class HouseRepository(private val supabase: SupabaseClient) {
             val houseIds = members.map { it.house_id }
 
             if (houseIds.isEmpty()) {
-                return Result.success(emptyList())
+                return Result.success(createdHouses)
             }
 
-            val houses = supabase.postgrest["home"]
+            val adminMemberHouses = supabase.postgrest["home"]
                 .select {
                     filter {
                         isIn("id", houseIds)
                     }
                 }.decodeList<House>()
 
-            Result.success(houses)
+            Result.success((createdHouses + adminMemberHouses).distinctBy { it.id })
         } catch (e: Exception) {
             Result.failure(e)
         }

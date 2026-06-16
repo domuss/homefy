@@ -34,6 +34,7 @@ import com.domus.homefy.data.House
 import com.domus.homefy.data.HouseMemberOption
 import com.domus.homefy.ui.auth.AdminState
 import com.domus.homefy.ui.auth.AuthViewModel
+import com.domus.homefy.ui.house.HouseUIStatus
 import com.domus.homefy.ui.house.HouseViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -60,13 +61,14 @@ fun CreateBillScreen(
     val houses = houseViewModel.housesList
     val members = billViewModel.members
     val uiStatus = billViewModel.uiStatus
+    val houseUiStatus = houseViewModel.uiStatus
 
     val adminState by authViewModel.isAdmin.collectAsState()
     val isAdmin = (adminState as? AdminState.IsAdmin)?.admin == true
 
     LaunchedEffect(Unit) {
         billViewModel.clearStatus()
-        houseViewModel.loadHouses()
+        houseViewModel.loadHousesWithAdmin()
     }
 
     LaunchedEffect(selectedHouse?.id) {
@@ -138,13 +140,18 @@ fun CreateBillScreen(
 
         ExposedDropdownMenuBox(
             expanded = houseMenuExpanded,
-            onExpandedChange = { houseMenuExpanded = !houseMenuExpanded }
+            onExpandedChange = {
+                if (houses.isNotEmpty()) {
+                    houseMenuExpanded = !houseMenuExpanded
+                }
+            }
         ) {
             OutlinedTextField(
                 value = selectedHouse?.name ?: "",
                 onValueChange = {},
                 readOnly = true,
                 label = { Text("Casa") },
+                enabled = houses.isNotEmpty(),
                 trailingIcon = {
                     ExposedDropdownMenuDefaults.TrailingIcon(expanded = houseMenuExpanded)
                 },
@@ -174,7 +181,7 @@ fun CreateBillScreen(
         ExposedDropdownMenuBox(
             expanded = memberMenuExpanded,
             onExpandedChange = {
-                if (selectedHouse != null) {
+                if (selectedHouse != null && isAdmin) {
                     memberMenuExpanded = !memberMenuExpanded
                 }
             }
@@ -184,7 +191,7 @@ fun CreateBillScreen(
                 onValueChange = {},
                 readOnly = true,
                 label = { Text("Responsável (opcional)") },
-                enabled = selectedHouse != null,
+                enabled = selectedHouse != null && isAdmin,
                 trailingIcon = {
                     ExposedDropdownMenuDefaults.TrailingIcon(expanded = memberMenuExpanded)
                 },
@@ -226,6 +233,15 @@ fun CreateBillScreen(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
+
+        if (houseUiStatus is HouseUIStatus.Sucesso && houses.isEmpty()) {
+            Text(
+                text = "Você precisa ser administrador de uma casa para criar contas.",
+                color = MaterialTheme.colorScheme.error
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+        }
 
         if (selectedHouse != null && !isAdmin) {
             Text(
