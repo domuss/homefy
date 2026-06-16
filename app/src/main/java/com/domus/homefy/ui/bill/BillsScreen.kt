@@ -54,6 +54,7 @@ import java.util.Locale
 fun BillsScreen(
     navController: NavController,
     padding: PaddingValues,
+    houseId: Long? = null,
     billViewModel: BillViewModel = koinViewModel(),
     houseViewModel: HouseViewModel = koinViewModel(),
     authViewModel: AuthViewModel = koinViewModel()
@@ -74,9 +75,11 @@ fun BillsScreen(
         houseViewModel.loadHouses()
     }
 
-    LaunchedEffect(houses) {
+    LaunchedEffect(houses, houseId) {
         if (selectedHouse == null && houses.isNotEmpty()) {
-            selectedHouse = houses.first()
+            selectedHouse = houseId?.let { requestedHouseId ->
+                houses.firstOrNull { house -> house.id == requestedHouseId }
+            } ?: houses.first()
         }
     }
 

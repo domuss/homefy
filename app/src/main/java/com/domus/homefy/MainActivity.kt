@@ -170,6 +170,16 @@ fun MainNavGraph() {
                     padding = padding
                 )
             }
+
+            composable("bills/{houseId}") { backStackEntry ->
+                val houseId = backStackEntry.arguments?.getString("houseId")?.toLong()
+
+                BillsScreen(
+                    navController = navController,
+                    padding = padding,
+                    houseId = houseId
+                )
+            }
             composable("edit-house/{id}/{name}/{accessCode}/{isCodeActive}") { backStackEntry ->
                 val id = backStackEntry.arguments?.getString("id")?.toLong() ?: 0
                 val name = backStackEntry.arguments?.getString("name") ?: ""
