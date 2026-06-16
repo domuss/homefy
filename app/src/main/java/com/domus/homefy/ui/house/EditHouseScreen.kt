@@ -13,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.AttachMoney
 import androidx.compose.material.icons.outlined.CheckBox
 import androidx.compose.material.icons.outlined.Checklist
 import androidx.compose.material.icons.outlined.ContentCopy
@@ -33,11 +34,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.domus.homefy.data.Bill
 import com.domus.homefy.data.HouseMemberFull
 import com.domus.homefy.data.Role
 import com.domus.homefy.data.Task
 import com.domus.homefy.ui.auth.AdminState
 import com.domus.homefy.ui.auth.AuthViewModel
+import com.domus.homefy.ui.bill.BillViewModel
 import com.domus.homefy.ui.shared.LoadingScreen
 import com.domus.homefy.ui.task.TaskViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -88,7 +91,8 @@ fun EditHouseScreenContent(
     isAdmin: Boolean,
     padding: PaddingValues,
     houseViewModel: HouseViewModel = koinViewModel(),
-    taskViewModel: TaskViewModel = koinViewModel()
+    taskViewModel: TaskViewModel = koinViewModel(),
+    billViewModel: BillViewModel = koinViewModel()
 ) {
     var isCodeActive by remember { mutableStateOf(initialIsCodeActive) }
     var houseName by remember(currentName) { mutableStateOf(currentName) }
@@ -98,6 +102,7 @@ fun EditHouseScreenContent(
 
     val houseMembers by houseViewModel.houseMembersState.collectAsState()
     val tasks = taskViewModel.tasks
+    val bills = billViewModel.bills
 
     val uiStatus = houseViewModel.uiStatus
     val actionsEnabled = isAdmin && uiStatus != HouseUIStatus.Loading
@@ -116,6 +121,7 @@ fun EditHouseScreenContent(
 
     LaunchedEffect(houseId) {
         taskViewModel.loadTasks(houseId)
+        billViewModel.loadBills(houseId)
     }
 
     Column(
@@ -168,6 +174,16 @@ fun EditHouseScreenContent(
                     launchSingleTop = true
                 }
             }, title = "Tarefas da casa", icon = Icons.Outlined.Checklist
+        )
+
+        Spacer(Modifier.height(18.dp))
+
+        ManagementCard(
+            items = bills, canManage = isAdmin, onManage = {
+                navController.navigate("bills/$houseId") {
+                    launchSingleTop = true
+                }
+            }, title = "Contas da casa", icon = Icons.Outlined.AttachMoney
         )
 
         Spacer(Modifier.height(18.dp))
@@ -426,6 +442,24 @@ private fun <T> ManagementRowCard(item: T) {
             is Task -> {
                 Icon(
                     Icons.Outlined.CheckBox,
+                    contentDescription = null,
+                    tint = Color(0xFF777777),
+                    modifier = Modifier.size(30.dp)
+                )
+
+                Spacer(Modifier.width(10.dp))
+
+                Text(
+                    item.title,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            is Bill -> {
+                Icon(
+                    Icons.Outlined.AttachMoney,
                     contentDescription = null,
                     tint = Color(0xFF777777),
                     modifier = Modifier.size(30.dp)

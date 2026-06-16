@@ -109,6 +109,11 @@ class BillViewModel(
                 return@launch
             }
 
+            if (!houseRepository.isHouseAdmin(houseId, createdBy)) {
+                uiStatus = BillUIStatus.Error("Apenas administradores podem criar contas nesta casa")
+                return@launch
+            }
+
             val bill = Bill(
                 house_id = houseId,
                 title = title.trim(),
