@@ -1,9 +1,10 @@
 package com.domus.homefy.di
 
+import androidx.room.Room
 import com.domus.homefy.data.AuthRepository
 import com.domus.homefy.data.BillRepository
-import com.domus.homefy.data.DailyQuoteDatabaseHelper
 import com.domus.homefy.data.DailyQuoteRepository
+import com.domus.homefy.data.HomefyDatabase
 import com.domus.homefy.data.HouseRepository
 import com.domus.homefy.data.KanyeQuoteApi
 import com.domus.homefy.data.TaskRepository
@@ -49,7 +50,14 @@ val appModule = module {
             .build()
     }
     single { get<Retrofit>().create(KanyeQuoteApi::class.java) }
-    single { DailyQuoteDatabaseHelper(androidContext()) }
+    single {
+        Room.databaseBuilder(
+            androidContext(),
+            HomefyDatabase::class.java,
+            "homefy.db"
+        ).build()
+    }
+    single { get<HomefyDatabase>().dailyQuoteDao() }
     single { DailyQuoteRepository(get(), get()) }
 
     viewModel { AuthViewModel(get(), get(), get()) }

@@ -6,11 +6,11 @@ import java.time.LocalDate
 
 class DailyQuoteRepository(
     private val api: KanyeQuoteApi,
-    private val database: DailyQuoteDatabaseHelper
+    private val dailyQuoteDao: DailyQuoteDao
 ) {
     suspend fun getTodayQuote(): Result<DailyQuoteEntity> = withContext(Dispatchers.IO) {
         val today = LocalDate.now().toString()
-        val cached = database.getQuoteByDate(today)
+        val cached = dailyQuoteDao.getQuoteByDate(today)
 
         if (cached != null) {
             return@withContext Result.success(cached)
@@ -24,10 +24,10 @@ class DailyQuoteRepository(
                 savedAt = System.currentTimeMillis()
             )
 
-            database.replaceQuote(dailyQuote)
+            dailyQuoteDao.replaceQuote(dailyQuote)
             Result.success(dailyQuote)
         } catch (e: Exception) {
-            val latest = database.getLatestQuote()
+            val latest = dailyQuoteDao.getLatestQuote()
             if (latest != null) {
                 Result.success(latest)
             } else {
